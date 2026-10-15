@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- En TV: 4 tarjetas en el menú y 4 carátulas por fila con proporción de póster -->
+<resources>
+    <integer name="home_columns">4</integer>
+    <integer name="poster_cell_dp">130</integer>
+</resources>

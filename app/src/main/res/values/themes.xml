@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.Cine" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">@color/amber</item>
+        <item name="colorOnPrimary">@color/on_amber</item>
+        <item name="colorPrimaryContainer">@color/amber_dim</item>
+        <item name="colorOnPrimaryContainer">@color/amber_light</item>
+        <item name="colorSecondary">@color/amber_light</item>
+        <item name="colorOnSecondary">@color/on_amber</item>
+        <item name="colorSecondaryContainer">@color/amber_dim</item>
+        <item name="colorOnSecondaryContainer">@color/amber_light</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="colorOnSurfaceVariant">@color/text_secondary</item>
+        <item name="colorSurfaceContainerHigh">@color/surface_high</item>
+        <item name="colorOutline">@color/outline</item>
+        <item name="colorError">@color/error_soft</item>
+        <item name="android:colorBackground">@color/bg_deep</item>
+        <item name="android:windowBackground">@color/bg_deep</item>
+        <item name="android:statusBarColor">@color/bg_deep</item>
+        <item name="android:navigationBarColor">@color/bg_deep</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+        <item name="materialButtonStyle">@style/Widget.Cine.Button</item>
+        <item name="materialButtonOutlinedStyle">@style/Widget.Cine.Button.Outlined</item>
+        <item name="textInputStyle">@style/Widget.Cine.TextInput</item>
+    </style>
+
+    <style name="Theme.Cine.Player" parent="Theme.Cine">
+        <item name="android:windowBackground">@android:color/black</item>
+        <item name="android:windowFullscreen">true</item>
+    </style>
+
+    <!-- Botón principal ámbar; se ilumina al recibir el foco del mando -->
+    <style name="Widget.Cine.Button" parent="Widget.Material3.Button">
+        <item name="backgroundTint">@color/btn_filled_bg</item>
+        <item name="android:textColor">@color/on_amber</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:minHeight">56dp</item>
+        <item name="cornerRadius">12dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="Widget.Cine.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="backgroundTint">@color/btn_outline_bg</item>
+        <item name="strokeColor">@color/btn_outline_stroke</item>
+        <item name="strokeWidth">2dp</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:minHeight">52dp</item>
+        <item name="cornerRadius">12dp</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <style name="Widget.Cine.Toggle" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="backgroundTint">@color/toggle_bg</item>
+        <item name="strokeColor">@color/btn_outline_stroke</item>
+        <item name="strokeWidth">2dp</item>
+        <item name="android:textColor">@color/toggle_text</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:minHeight">52dp</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <style name="Widget.Cine.TextInput" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">@color/input_stroke</item>
+        <item name="hintTextColor">@color/amber</item>
+        <item name="boxCornerRadiusTopStart">12dp</item>
+        <item name="boxCornerRadiusTopEnd">12dp</item>
+        <item name="boxCornerRadiusBottomStart">12dp</item>
+        <item name="boxCornerRadiusBottomEnd">12dp</item>
+        <item name="boxBackgroundColor">@color/surface_glass</item>
+    </style>
+
+    <!-- Estilo base de textos (los nombres con punto heredan de él) -->
+    <style name="Text.Cine" parent="" />
+
+    <style name="Text.Cine.Title">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:fontFamily">serif</item>
+        <item name="android:letterSpacing">0.18</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="Text.Cine.Label">
+        <item name="android:textColor">@color/amber</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:letterSpacing">0.15</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+</resources>

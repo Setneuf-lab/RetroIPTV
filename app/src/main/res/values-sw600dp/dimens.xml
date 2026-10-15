@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tablets y televisores: todo un poco más grande para verse desde el sofá -->
+<resources>
+    <dimen name="screen_padding">36dp</dimen>
+    <dimen name="groups_width">300dp</dimen>
+    <dimen name="home_card_height">170dp</dimen>
+    <dimen name="home_icon">64dp</dimen>
+    <dimen name="home_title_size">24sp</dimen>
+    <dimen name="app_title_size">38sp</dimen>
+    <dimen name="row_text_size">16sp</dimen>
+    <dimen name="poster_height">220dp</dimen>
+    <dimen name="row_group_max">170dp</dimen>
+    <dimen name="row_height">52dp</dimen>
+    <dimen name="row_number_w">46dp</dimen>
+    <dimen name="row_logo_w">56dp</dimen>
+    <dimen name="row_logo_h">36dp</dimen>
+    <dimen name="row_sub_size">13sp</dimen>
+    <dimen name="row_number_size">15sp</dimen>
+    <!-- Seguir viendo -->
+    <dimen name="continue_width">290dp</dimen>
+    <dimen name="continue_image_h">80dp</dimen>
+    <dimen name="channel_panel_w">480dp</dimen>
+    <dimen name="row_quality_size">11sp</dimen>
+    <dimen name="group_text_size">15sp</dimen>
+    <dimen name="poster_title_size">13sp</dimen>
+    <dimen name="poster_sub_size">11sp</dimen>
+    <dimen name="continue_image_w">56dp</dimen>
+    <dimen name="home_top_gap">20dp</dimen>
+    <dimen name="detail_poster_w">200dp</dimen>
+    <dimen name="detail_poster_h">300dp</dimen>
+    <dimen name="detail_title_size">30sp</dimen>
+    <dimen name="detail_plot_size">16sp</dimen>
+</resources>

@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black">
+
+    <androidx.media3.ui.PlayerView
+        android:id="@+id/playerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:focusable="true"
+        app:resize_mode="fit"
+        app:show_buffering="always"
+        app:show_subtitle_button="false"
+        app:show_shuffle_button="false" />
+
+    <!-- Imagen del motor VLC (solo visible cuando se usa VLC) -->
+    <org.videolan.libvlc.util.VLCVideoLayout
+        android:id="@+id/vlcLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
+    <!-- Botón de subtítulos (aparece junto a los controles) -->
+    <ImageButton
+        android:id="@+id/btnSubtitles"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="@dimen/player_edge"
+        android:layout_marginEnd="@dimen/player_edge"
+        android:translationX="-64dp"
+        android:background="@drawable/bg_player_button"
+        android:contentDescription="@string/sub_title"
+        android:focusable="true"
+        android:src="@drawable/ic_subtitles"
+        android:visibility="gone" />
+
+    <!-- Botón para abrir la lista de canales -->
+    <ImageButton
+        android:id="@+id/btnChannels"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
+        android:layout_gravity="top|end"
+        android:layout_margin="@dimen/player_edge"
+        android:background="@drawable/bg_player_button"
+        android:contentDescription="@string/channels_title"
+        android:focusable="true"
+        android:src="@drawable/ic_list"
+        android:visibility="gone" />
+
+    <!-- Lista de canales superpuesta (OK o ← durante la reproducción) -->
+    <LinearLayout
+        android:id="@+id/panelChannels"
+        android:layout_width="@dimen/channel_panel_w"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:background="#EB0D0B09"
+        android:orientation="vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="20dp"
+        android:visibility="gone">
+
+        <TextView
+            style="@style/Text.Cine.Title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:letterSpacing="0.06"
+            android:paddingHorizontal="6dp"
+            android:text="@string/channels_title"
+            android:textSize="22sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="6dp"
+            android:text="@string/channels_hint"
+            android:textColor="@color/text_muted"
+            android:textSize="12sp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerChannels"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="10dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:paddingBottom="16dp"
+            android:scrollbars="vertical" />
+    </LinearLayout>
+
+    <!-- Nombre del canal al cambiar -->
+    <LinearLayout
+        android:id="@+id/panelInfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|start"
+        android:layout_margin="@dimen/player_edge"
+        android:background="@drawable/bg_player_info"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="18dp"
+        android:paddingVertical="10dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/textInfoNumber"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="14dp"
+            android:fontFamily="monospace"
+            android:textColor="@color/amber"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/textInfoName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxWidth="520dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/text_primary"
+            android:textSize="20sp" />
+    </LinearLayout>
+
+    <!-- Avance / retroceso progresivo (películas y series) -->
+    <LinearLayout
+        android:id="@+id/panelSeek"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="@drawable/bg_player_info"
+        android:gravity="center_horizontal"
+        android:minWidth="300dp"
+        android:orientation="vertical"
+        android:paddingHorizontal="28dp"
+        android:paddingVertical="16dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/textSeekDelta"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="@color/amber"
+            android:textSize="26sp" />
+
+        <TextView
+            android:id="@+id/textSeekTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:fontFamily="monospace"
+            android:textColor="@color/text_primary"
+            android:textSize="18sp" />
+
+        <ProgressBar
+            android:id="@+id/progressSeek"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="260dp"
+            android:layout_height="4dp"
+            android:layout_marginTop="10dp"
+            android:max="1000"
+            android:progressBackgroundTint="@color/outline"
+            android:progressTint="@color/amber" />
+    </LinearLayout>
+
+    <!-- Número tecleado con el mando (zapping por número) -->
+    <TextView
+        android:id="@+id/textDigits"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_margin="@dimen/player_edge"
+        android:background="@drawable/bg_player_info"
+        android:fontFamily="monospace"
+        android:minWidth="110dp"
+        android:gravity="center"
+        android:paddingHorizontal="22dp"
+        android:paddingVertical="8dp"
+        android:textColor="@color/amber"
+        android:textSize="40sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+    <!-- Siguiente episodio (al terminar uno) -->
+    <LinearLayout
+        android:id="@+id/panelNext"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="@dimen/player_edge"
+        android:background="@drawable/bg_player_info"
+        android:orientation="vertical"
+        android:padding="20dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/textNextCountdown"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/amber"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/textNextName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:maxWidth="420dp"
+            android:textColor="@color/text_primary"
+            android:textSize="18sp" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnNextNow"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="150dp"
+                android:text="@string/next_now" />
+
+            <Button
+                android:id="@+id/btnNextCancel"
+                style="@style/Widget.Cine.Button.Outlined"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:minWidth="130dp"
+                android:text="@string/cancel" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Error de reproducción -->
+    <LinearLayout
+        android:id="@+id/panelError"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_margin="24dp"
+        android:background="@drawable/bg_player_info"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/textError"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxWidth="480dp"
+            android:gravity="center"
+            android:textColor="@color/text_primary"
+            android:textSize="17sp" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnRetry"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="160dp"
+                android:text="@string/retry" />
+
+            <!-- Si nuestro reproductor no puede con el vídeo: abrirlo en VLC -->
+            <Button
+                android:id="@+id/btnExternal"
+                style="@style/Widget.Cine.Button.Outlined"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:minWidth="160dp"
+                android:text="@string/try_vlc"
+                android:visibility="gone" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

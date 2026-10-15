@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android TV / TV Box: tamaños pensados para ver desde el sofá (pantalla de 960x540 dp) -->
+<resources>
+    <dimen name="screen_padding">28dp</dimen>
+    <dimen name="groups_width">300dp</dimen>
+    <dimen name="home_card_height">140dp</dimen>
+    <dimen name="home_icon">46dp</dimen>
+    <dimen name="home_title_size">20sp</dimen>
+    <dimen name="app_title_size">32sp</dimen>
+    <dimen name="row_text_size">15sp</dimen>
+    <dimen name="poster_height">220dp</dimen>
+    <!-- 10 filas visibles: 36dp + 4dp de margen = 40dp por canal -->
+    <dimen name="row_height">36dp</dimen>
+    <dimen name="row_number_w">44dp</dimen>
+    <dimen name="row_logo_w">48dp</dimen>
+    <dimen name="row_logo_h">28dp</dimen>
+    <dimen name="row_sub_size">12sp</dimen>
+    <dimen name="row_group_max">150dp</dimen>
+    <dimen name="search_height">44dp</dimen>
+    <dimen name="row_number_size">14sp</dimen>
+    <!-- Muchas teles recortan ~5 % de los bordes: los controles se separan de ellos -->
+    <dimen name="overscan_h">48dp</dimen>
+    <dimen name="overscan_v">27dp</dimen>
+    <dimen name="player_edge">48dp</dimen>
+    <!-- Seguir viendo -->
+    <dimen name="continue_width">290dp</dimen>
+    <dimen name="continue_image_h">78dp</dimen>
+    <dimen name="channel_panel_w">470dp</dimen>
+    <dimen name="row_quality_size">11sp</dimen>
+    <dimen name="group_text_size">14sp</dimen>
+    <dimen name="poster_title_size">12sp</dimen>
+    <dimen name="poster_sub_size">10sp</dimen>
+    <dimen name="continue_image_w">54dp</dimen>
+    <dimen name="home_top_gap">14dp</dimen>
+    <dimen name="detail_poster_w">200dp</dimen>
+    <dimen name="detail_poster_h">300dp</dimen>
+    <dimen name="detail_title_size">30sp</dimen>
+    <dimen name="detail_plot_size">16sp</dimen>
+</resources>

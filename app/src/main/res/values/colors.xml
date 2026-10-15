@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Paleta "sala de cine": negro cálido, ámbar de proyector, texto marfil -->
+    <color name="bg_deep">#FF0D0B09</color>
+    <color name="surface">#FF1A1714</color>
+    <color name="surface_high">#FF26221E</color>
+    <color name="surface_glass">#D91A1714</color>
+    <color name="outline">#FF3D3530</color>
+    <color name="amber">#FFE0A04A</color>
+    <color name="amber_light">#FFF2C27E</color>
+    <color name="amber_dim">#33E0A04A</color>
+    <color name="amber_faint">#1FE0A04A</color>
+    <color name="on_amber">#FF1C1208</color>
+    <color name="text_primary">#FFF3EDE4</color>
+    <color name="text_secondary">#FFB0A699</color>
+    <color name="text_muted">#FF7D7469</color>
+    <color name="error_soft">#FFE58A6E</color>
+    <color name="ic_launcher_bg">#FF17120E</color>
+    <color name="warn">#FFF2B33D</color>
+    <color name="danger">#FFEF6A55</color>
+    <color name="ok_soft">#FF9FCB8A</color>
+</resources>

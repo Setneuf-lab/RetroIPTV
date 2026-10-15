@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Fila compacta: en TV caben 10 canales en pantalla; en móvil el nombre ocupa todo el ancho (hasta 2 líneas) -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="@dimen/row_height"
+    android:layout_marginHorizontal="4dp"
+    android:layout_marginVertical="2dp"
+    android:background="@drawable/bg_item"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="8dp"
+    android:paddingVertical="3dp">
+
+    <TextView
+        android:id="@+id/textNumber"
+        android:layout_width="@dimen/row_number_w"
+        android:layout_height="wrap_content"
+        android:fontFamily="monospace"
+        android:gravity="center"
+        android:textColor="@color/amber"
+        android:textSize="@dimen/row_number_size" />
+
+    <ImageView
+        android:id="@+id/imageLogo"
+        android:layout_width="@dimen/row_logo_w"
+        android:layout_height="@dimen/row_logo_h"
+        android:layout_marginEnd="10dp"
+        android:importantForAccessibility="no"
+        android:scaleType="fitCenter" />
+
+    <TextView
+        android:id="@+id/textName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:lineSpacingMultiplier="0.95"
+        android:maxLines="@integer/row_name_lines"
+        android:textColor="@color/text_primary"
+        android:textSize="@dimen/row_text_size" />
+
+    <!-- Calidad (HD, FHD, 4K…): siempre visible aunque el nombre se corte -->
+    <TextView
+        android:id="@+id/textQuality"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="6dp"
+        android:background="@drawable/bg_quality"
+        android:fontFamily="sans-serif-medium"
+        android:maxLines="1"
+        android:paddingHorizontal="5dp"
+        android:paddingVertical="1dp"
+        android:textColor="@color/amber_light"
+        android:textSize="@dimen/row_quality_size"
+        android:visibility="gone" />
+
+    <!-- Grupo a la derecha, discreto -->
+    <TextView
+        android:id="@+id/textGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:maxWidth="@dimen/row_group_max"
+        android:textColor="@color/text_muted"
+        android:textSize="@dimen/row_sub_size" />
+</LinearLayout>

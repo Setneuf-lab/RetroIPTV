@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="home_columns">2</integer>
+    <!-- Anchura aproximada (dp) de cada carátula en la cuadrícula -->
+    <integer name="poster_cell_dp">150</integer>
+    <!-- Líneas para el nombre del canal: 2 en móvil, 1 en tablet/TV (10 canales por pantalla) -->
+    <integer name="row_name_lines">2</integer>
+</resources>

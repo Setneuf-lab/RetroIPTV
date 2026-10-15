@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Fondo vectorial de sala de cine: pantalla iluminada, telón granate apagado y filas de butacas. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="960dp"
+    android:height="540dp"
+    android:viewportWidth="1600"
+    android:viewportHeight="900">
+
+    <!-- Pared de la sala -->
+    <path android:pathData="M0,0h1600v900h-1600z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="linear" android:startX="0" android:startY="0" android:endX="0" android:endY="900">
+                <item android:offset="0" android:color="#FF1F1712" />
+                <item android:offset="0.6" android:color="#FF140F0C" />
+                <item android:offset="1" android:color="#FF070505" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Halo cálido del proyector sobre la sala -->
+    <path android:pathData="M0,0h1600v900h-1600z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="radial" android:centerX="800" android:centerY="300" android:gradientRadius="760">
+                <item android:offset="0" android:color="#55E8B26E" />
+                <item android:offset="0.45" android:color="#18E0A04A" />
+                <item android:offset="1" android:color="#00000000" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Marco de la pantalla -->
+    <path
+        android:fillColor="#FF0E0B09"
+        android:pathData="M366,92h868a14,14 0,0 1,14,14v388a14,14 0,0 1,-14,14h-868a14,14 0,0 1,-14,-14v-388a14,14 0,0 1,14,-14z" />
+
+    <!-- Pantalla iluminada -->
+    <path android:pathData="M380,106h840v388h-840z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="radial" android:centerX="800" android:centerY="260" android:gradientRadius="520">
+                <item android:offset="0" android:color="#FF4A3E31" />
+                <item android:offset="0.6" android:color="#FF2C251F" />
+                <item android:offset="1" android:color="#FF1B1714" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Brillo superior de la pantalla -->
+    <path android:pathData="M380,106h840v120h-840z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="linear" android:startX="0" android:startY="106" android:endX="0" android:endY="226">
+                <item android:offset="0" android:color="#22F6DDB0" />
+                <item android:offset="1" android:color="#00F6DDB0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Bambalina superior -->
+    <path
+        android:fillColor="#FF2B1311"
+        android:pathData="M0,0h1600v54c-40,22 -80,22 -120,0c-40,22 -80,22 -120,0c-40,22 -80,22 -120,0c-40,22 -80,22 -120,0c-40,22 -80,22 -120,0c-40,22 -80,22 -120,0c-40,22 -80,22 -120,0c-40,22 -80,22 -120,0c-40,22 -80,22 -120,0c-40,22 -80,22 -120,0c-40,22 -80,22 -120,0c-40,22 -80,22 -120,0c-40,22 -80,22 -120,0c-40,22 -80,22 -40,10z" />
+
+    <!-- Telón izquierdo -->
+    <path android:pathData="M0,0h330c-30,180 -40,420 20,660c10,90 -10,170 -40,240h-310z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="linear" android:startX="0" android:startY="0" android:endX="340" android:endY="0">
+                <item android:offset="0" android:color="#FF1E0C0B" />
+                <item android:offset="0.55" android:color="#FF3E1816" />
+                <item android:offset="1" android:color="#FF2A100F" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#40000000"
+        android:strokeWidth="10"
+        android:pathData="M70,0c-10,300 -10,600 -20,900M150,0c-14,300 -6,600 -12,900M235,0c-20,300 -4,600 -2,900" />
+
+    <!-- Telón derecho -->
+    <path android:pathData="M1600,0h-330c30,180 40,420 -20,660c-10,90 10,170 40,240h310z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="linear" android:startX="1600" android:startY="0" android:endX="1260" android:endY="0">
+                <item android:offset="0" android:color="#FF1E0C0B" />
+                <item android:offset="0.55" android:color="#FF3E1816" />
+                <item android:offset="1" android:color="#FF2A100F" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#40000000"
+        android:strokeWidth="10"
+        android:pathData="M1530,0c10,300 10,600 20,900M1450,0c14,300 6,600 12,900M1365,0c20,300 4,600 2,900" />
+
+    <!-- Butacas: fila del fondo -->
+    <path
+        android:fillColor="#FF1C1512"
+        android:pathData="M-6,650h36a14,14 0,0 1,14,14v56h-64v-56a14,14 0,0 1,14,-14zM74,650h36a14,14 0,0 1,14,14v56h-64v-56a14,14 0,0 1,14,-14zM154,650h36a14,14 0,0 1,14,14v56h-64v-56a14,14 0,0 1,14,-14zM234,650h36a14,14 0,0 1,14,14v56h-64v-56a14,14 0,0 1,14,-14zM314,650h36a14,14 0,0 1,14,14v56h-64v-56a14,14 0,0 1,14,-14zM394,650h36a14,14 0,0 1,14,14v56h-64v-56a14,14 0,0 1,14,-14zM474,650h36a14,14 0,0 1,14,14v56h-64v-56a14,14 0,0 1,14,-14zM554,650h36a14,14 0,0 1,14,14v56h-64v-56a14,14 0,0 1,14,-14zM634,650h36a14,14 0,0 1,14,14v56h-64v-56a14,14 0,0 1,14,-14zM714,650h36a14,14 0,0 1,14,14v56h-64v-56a14,14 0,0 1,14,-14zM794,650h36a14,14 0,0 1,14,14v56h-64v-56a14,14 0,0 1,14,-14zM874,650h36a14,14 0,0 1,14,14v56h-64v-56a14,14 0,0 1,14,-14zM954,650h36a14,14 0,0 1,14,14v56h-64v-56a14,14 0,0 1,14,-14zM1034,650h36a14,14 0,0 1,14,14v56h-64v-56a14,14 0,0 1,14,-14zM1114,650h36a14,14 0,0 1,14,14v56h-64v-56a14,14 0,0 1,14,-14zM1194,650h36a14,14 0,0 1,14,14v56h-64v-56a14,14 0,0 1,14,-14zM1274,650h36a14,14 0,0 1,14,14v56h-64v-56a14,14 0,0 1,14,-14zM1354,650h36a14,14 0,0 1,14,14v56h-64v-56a14,14 0,0 1,14,-14zM1434,650h36a14,14 0,0 1,14,14v56h-64v-56a14,14 0,0 1,14,-14zM1514,650h36a14,14 0,0 1,14,14v56h-64v-56a14,14 0,0 1,14,-14zM1594,650h36a14,14 0,0 1,14,14v56h-64v-56a14,14 0,0 1,14,-14z" />
+
+    <!-- Butacas: fila central -->
+    <path
+        android:fillColor="#FF130E0C"
+        android:pathData="M-36,735h54a14,14 0,0 1,14,14v66h-82v-66a14,14 0,0 1,14,-14zM64,735h54a14,14 0,0 1,14,14v66h-82v-66a14,14 0,0 1,14,-14zM164,735h54a14,14 0,0 1,14,14v66h-82v-66a14,14 0,0 1,14,-14zM264,735h54a14,14 0,0 1,14,14v66h-82v-66a14,14 0,0 1,14,-14zM364,735h54a14,14 0,0 1,14,14v66h-82v-66a14,14 0,0 1,14,-14zM464,735h54a14,14 0,0 1,14,14v66h-82v-66a14,14 0,0 1,14,-14zM564,735h54a14,14 0,0 1,14,14v66h-82v-66a14,14 0,0 1,14,-14zM664,735h54a14,14 0,0 1,14,14v66h-82v-66a14,14 0,0 1,14,-14zM764,735h54a14,14 0,0 1,14,14v66h-82v-66a14,14 0,0 1,14,-14zM864,735h54a14,14 0,0 1,14,14v66h-82v-66a14,14 0,0 1,14,-14zM964,735h54a14,14 0,0 1,14,14v66h-82v-66a14,14 0,0 1,14,-14zM1064,735h54a14,14 0,0 1,14,14v66h-82v-66a14,14 0,0 1,14,-14zM1164,735h54a14,14 0,0 1,14,14v66h-82v-66a14,14 0,0 1,14,-14zM1264,735h54a14,14 0,0 1,14,14v66h-82v-66a14,14 0,0 1,14,-14zM1364,735h54a14,14 0,0 1,14,14v66h-82v-66a14,14 0,0 1,14,-14zM1464,735h54a14,14 0,0 1,14,14v66h-82v-66a14,14 0,0 1,14,-14zM1564,735h54a14,14 0,0 1,14,14v66h-82v-66a14,14 0,0 1,14,-14z" />
+
+    <!-- Butacas: primera fila -->
+    <path
+        android:fillColor="#FF0A0807"
+        android:pathData="M-12,830h68a18,18 0,0 1,18,18v72h-104v-72a18,18 0,0 1,18,-18zM112,830h68a18,18 0,0 1,18,18v72h-104v-72a18,18 0,0 1,18,-18zM236,830h68a18,18 0,0 1,18,18v72h-104v-72a18,18 0,0 1,18,-18zM360,830h68a18,18 0,0 1,18,18v72h-104v-72a18,18 0,0 1,18,-18zM484,830h68a18,18 0,0 1,18,18v72h-104v-72a18,18 0,0 1,18,-18zM608,830h68a18,18 0,0 1,18,18v72h-104v-72a18,18 0,0 1,18,-18zM732,830h68a18,18 0,0 1,18,18v72h-104v-72a18,18 0,0 1,18,-18zM856,830h68a18,18 0,0 1,18,18v72h-104v-72a18,18 0,0 1,18,-18zM980,830h68a18,18 0,0 1,18,18v72h-104v-72a18,18 0,0 1,18,-18zM1104,830h68a18,18 0,0 1,18,18v72h-104v-72a18,18 0,0 1,18,-18zM1228,830h68a18,18 0,0 1,18,18v72h-104v-72a18,18 0,0 1,18,-18zM1352,830h68a18,18 0,0 1,18,18v72h-104v-72a18,18 0,0 1,18,-18zM1476,830h68a18,18 0,0 1,18,18v72h-104v-72a18,18 0,0 1,18,-18z" />
+</vector>

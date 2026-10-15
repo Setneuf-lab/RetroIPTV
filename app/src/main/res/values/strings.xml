@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Retro IPTV</string>
+    <string name="app_title">RETRO IPTV</string>
+    <string name="app_tagline">Tu sala de cine en casa</string>
+
+    <!-- Dispositivo -->
+    <string name="device_id_label">ID DEL DISPOSITIVO</string>
+    <string name="device_key_fmt">Clave: %1$s</string>
+    <string name="device_id_fmt">ID: %1$s</string>
+
+    <!-- Panel web -->
+    <string name="remote_label">LISTAS DEL PANEL WEB</string>
+    <string name="status_panel">Consultando el panel web…</string>
+    <string name="remote_offline">No se pudo conectar con el panel. Se usa la lista guardada en este dispositivo.</string>
+    <string name="remote_empty">Aún no hay listas asignadas. Pide al administrador que te asigne una desde el panel (dile el ID de arriba) y pulsa Actualizar.</string>
+    <string name="remote_choose">Pulsa una lista para usarla (★ = activa):</string>
+
+    <!-- Fuentes -->
+    <string name="source_title">Elige cómo cargar tu lista</string>
+    <string name="source_url">URL M3U</string>
+    <string name="source_file">Archivo</string>
+    <string name="source_xtream">Xtream</string>
+    <string name="source_cache">Última lista guardada</string>
+    <string name="hint_url">http://servidor.com/lista.m3u</string>
+    <string name="label_url">URL de la lista M3U</string>
+    <string name="pick_file">Seleccionar archivo .m3u / .m3u8</string>
+    <string name="no_file">Ningún archivo seleccionado</string>
+    <string name="file_selected">Archivo seleccionado</string>
+    <string name="label_host">Servidor (host:puerto)</string>
+    <string name="hint_host">http://servidor.com:8080</string>
+    <string name="label_user">Usuario</string>
+    <string name="label_pass">Contraseña</string>
+    <string name="label_ua">User-Agent (opcional, avanzado)</string>
+    <string name="hint_ua">Vacío = VLC (recomendado)</string>
+    <string name="btn_load">Cargar lista</string>
+    <string name="btn_open_cache">Abrir última lista guardada</string>
+
+    <!-- Estado -->
+    <string name="status_connecting">Conectando…</string>
+    <string name="status_downloading">Descargando lista… %1$.1f MB</string>
+    <string name="status_downloading_pct">Descargando lista… %1$.1f MB (%2$d%%)</string>
+    <string name="status_parsing">Organizando contenido… %1$s elementos</string>
+
+    <!-- Errores -->
+    <string name="err_url">Introduce una URL válida que empiece por http:// o https://</string>
+    <string name="err_no_file">Primero selecciona un archivo .m3u</string>
+    <string name="err_xtream">Rellena servidor, usuario y contraseña</string>
+    <string name="err_generic">No se pudo cargar la lista</string>
+    <string name="err_network">Error de red: %1$s. Comprueba la conexión y el servidor.</string>
+    <string name="warn_live_only">Lista muy grande para este dispositivo: se ha cargado solo la TV en vivo (sin películas ni series).</string>
+    <string name="err_memory">La lista es demasiado grande para la memoria de este dispositivo.</string>
+    <string name="err_unexpected">Error inesperado: %1$s</string>
+    <string name="err_no_picker">Este dispositivo no tiene selector de archivos. Usa la opción URL o Xtream.</string>
+    <string name="warn_extension">El archivo no tiene extensión .m3u; se intentará cargar igualmente.</string>
+
+    <!-- Home -->
+    <string name="section_live">TV en Vivo</string>
+    <string name="section_movies">Películas</string>
+    <string name="section_series">Series</string>
+    <string name="section_restart">Reiniciar</string>
+    <string name="restart_sub">Recargar la app</string>
+    <string name="unit_channels">canales</string>
+    <string name="unit_movies">títulos</string>
+    <string name="unit_series">series</string>
+    <string name="btn_change_list">Cambiar lista</string>
+    <string name="btn_refresh">Actualizar lista</string>
+    <string name="section_empty">Esta sección no tiene contenido en tu lista</string>
+    <string name="restart_title">Reiniciar la aplicación</string>
+    <string name="restart_message">La app se cerrará y volverá a abrirse con la última lista guardada.</string>
+    <string name="restart_confirm">Reiniciar</string>
+    <string name="cancel">Cancelar</string>
+
+    <string name="btn_restart">Reiniciar app</string>
+    <string name="btn_parental">Ajustes</string>
+
+    <!-- Favoritos -->
+    <string name="section_favorites">Favoritos</string>
+    <string name="unit_favorites">guardados</string>
+    <string name="fav_hint">Mantén OK sobre un canal para añadirlo</string>
+    <string name="fav_added">★ Añadido a favoritos</string>
+    <string name="fav_removed">Quitado de favoritos</string>
+    <string name="empty_favorites">Aún no tienes favoritos.\nMantén pulsado OK sobre un canal, película o serie para añadirlo.</string>
+
+    <!-- Control parental -->
+    <string name="ok">Aceptar</string>
+    <string name="close">Cerrar</string>
+    <string name="save">Guardar</string>
+    <string name="pin_enter">Introduce el PIN</string>
+    <string name="pin_wrong">PIN incorrecto</string>
+    <string name="pin_new">Crea un PIN de 4 números</string>
+    <string name="pin_repeat">Repite el PIN</string>
+    <string name="pin_4_digits">Deben ser 4 números</string>
+    <string name="pin_mismatch">No coinciden, vuelve a empezar</string>
+    <string name="pin_saved">PIN guardado</string>
+    <string name="parental_title">Control parental</string>
+    <string name="parental_auto_on">Bloquear contenido adulto automáticamente: SÍ</string>
+    <string name="parental_auto_off">Bloquear contenido adulto automáticamente: NO</string>
+    <string name="parental_groups_fmt">Grupos bloqueados a mano (%1$d)</string>
+    <string name="parental_change_pin">Cambiar PIN</string>
+    <string name="parental_disable">Desactivar control parental</string>
+    <string name="parental_disable_confirm">Se borrará el PIN y se desbloqueará todo el contenido.</string>
+    <string name="parental_disabled">Control parental desactivado</string>
+    <string name="parental_groups_title">Grupos bloqueados</string>
+    <string name="parental_groups_help">Para bloquear un grupo, entra en TV en Vivo, Películas o Series y mantén pulsado OK sobre el nombre del grupo.\n\nDesmarca aquí los grupos que quieras desbloquear.</string>
+    <string name="parental_need_pin">Primero crea un PIN en «Control parental» del menú principal</string>
+    <string name="group_locked">🔒 Grupo bloqueado. Se ocultará al volver al menú principal.</string>
+    <string name="group_unlocked">Grupo desbloqueado</string>
+
+    <!-- Subtítulos -->
+    <string name="sub_title">Subtítulos</string>
+    <string name="sub_off">Desactivados</string>
+    <string name="sub_track_fmt">Pista %1$d</string>
+    <string name="sub_track_line">Pista: %1$s</string>
+    <string name="sub_none_available">Pista: este contenido no trae subtítulos</string>
+    <string name="sub_none_help">Este vídeo no incluye subtítulos. Solo se pueden mostrar los que el proveedor añade dentro del vídeo (suele ocurrir en películas y series en formato MKV).</string>
+    <string name="sub_choose_track">Elegir subtítulos</string>
+    <string name="sub_sync">Sincronizar subtítulos</string>
+    <string name="sub_sync_line">Sincronización: %1$s</string>
+    <string name="sub_sync_help">Si los subtítulos salen ANTES que la voz, pulsa «+». Si salen DESPUÉS, pulsa «−». El ajuste se aplica al momento.</string>
+    <string name="sub_minus_1">−1 s</string>
+    <string name="sub_minus_01">−0,1 s</string>
+    <string name="sub_plus_01">+0,1 s</string>
+    <string name="sub_plus_1">+1 s</string>
+    <string name="sub_reset">Volver a 0</string>
+    <string name="sub_size">Tamaño</string>
+    <string name="sub_size_line">Tamaño: %1$s</string>
+    <string name="sub_font">Tipo de letra</string>
+    <string name="sub_font_line">Tipo de letra: %1$s</string>
+    <string name="sub_edge">Sombra o fondo</string>
+    <string name="sub_edge_line">Sombra o fondo: %1$s</string>
+    <string name="sub_color">Color</string>
+    <string name="sub_color_line">Color: %1$s</string>
+    <string-array name="sub_sizes">
+        <item>Pequeño</item>
+        <item>Normal</item>
+        <item>Grande</item>
+        <item>Muy grande</item>
+    </string-array>
+    <string-array name="sub_fonts">
+        <item>Normal</item>
+        <item>Negrita</item>
+        <item>Clásica (con serifa)</item>
+        <item>Máquina de escribir</item>
+    </string-array>
+    <string-array name="sub_edges">
+        <item>Sin efecto</item>
+        <item>Sombra</item>
+        <item>Contorno negro</item>
+        <item>Fondo oscuro</item>
+    </string-array>
+    <string-array name="sub_colors">
+        <item>Blanco</item>
+        <item>Amarillo</item>
+    </string-array>
+
+    <!-- Lista de canales en el reproductor -->
+    <string name="channels_title">Canales</string>
+    <string name="channels_hint">OK: ver · Mantener OK: favorito · Atrás: cerrar</string>
+
+    <!-- Modo Xtream (carga por categorías) -->
+    <string name="group_categories">Categorías</string>
+    <string name="unit_categories">categorías</string>
+    <string name="search_hint_categories">Buscar categoría…</string>
+    <string name="search_hint_in_category">Buscar en esta categoría…</string>
+    <string name="loading_content">Cargando…</string>
+    <string name="search_hint_movies">Buscar película…</string>
+    <string name="search_hint_series">Buscar serie…</string>
+    <string name="search_min_chars">Escribe al menos %1$d letras para buscar en todo el catálogo</string>
+    <string name="search_index_building">Preparando el buscador (solo la primera vez)…</string>
+    <string name="search_index_progress">Preparando el buscador (solo la primera vez)… %1$s títulos</string>
+    <string name="status_xt_login">Conectando con el servidor Xtream…</string>
+    <string name="status_xt_categories">Descargando categorías…</string>
+    <string name="status_xt_live">Descargando canales en vivo…</string>
+    <string name="status_xt_live_count">Descargando canales en vivo… %1$s</string>
+    <string name="account_expires_fmt">Caduca: %1$s</string>
+    <string name="account_cons_fmt">%1$d conexiones</string>
+
+    <!-- Ordenar -->
+    <string name="sort_title">Ordenar por</string>
+    <string name="sort_button_fmt">⇅  %1$s</string>
+    <string name="sort_number">Número</string>
+    <string name="sort_name">A–Z</string>
+    <string name="sort_group">Grupo</string>
+    <string name="sort_number_long">Número de canal (orden del proveedor)</string>
+    <string name="sort_name_long">Orden alfabético (A–Z)</string>
+    <string name="sort_group_long">Grupos del proveedor</string>
+
+    <!-- Contenido -->
+    <string name="group_all">Todos</string>
+    <string name="search_hint">Buscar canal o grupo…</string>
+    <string name="empty_results">No hay resultados</string>
+    <string name="episodes_fmt">%1$d episodios</string>
+
+    <!-- Reproductor -->
+    <string name="retry">Reintentar</string>
+    <string name="player_err_http">El servidor rechazó la conexión. El canal puede estar caído o tu cuenta ha alcanzado el máximo de conexiones simultáneas.</string>
+    <string name="player_err_network">No hay conexión con el servidor. Revisa tu Internet.</string>
+    <string name="player_err_format">Este formato de vídeo no es compatible con este dispositivo.</string>
+    <string name="player_err_generic">No se pudo reproducir (%1$s).</string>
+
+    <!-- Actualizaciones -->
+    <string name="update_title">Nueva versión disponible</string>
+    <string name="update_msg">Hay una nueva versión de Retro IPTV (%1$s). Tienes la %2$s.\n\nTus listas y favoritos se mantienen.</string>
+    <string name="update_now">Actualizar</string>
+    <string name="update_later">Más tarde</string>
+    <string name="update_downloading">Descargando actualización…</string>
+    <string name="update_failed">No se pudo descargar la actualización. Inténtalo más tarde.</string>
+    <string name="update_permission">Activa «Permitir de esta fuente» y vuelve atrás para instalar.</string>
+
+    <!-- Caducidad -->
+    <string name="expiry_days">Suscripción: caduca el %1$s · quedan %2$d días</string>
+    <string name="expiry_one_day">Suscripción: caduca el %1$s · ¡queda 1 día!</string>
+    <string name="expiry_today">Suscripción: ¡caduca hoy a las %1$s!</string>
+    <string name="expiry_expired">Suscripción caducada el %1$s</string>
+    <string name="expiry_never">Suscripción sin fecha de caducidad</string>
+
+    <!-- Seguir viendo -->
+    <string name="continue_title">Seguir viendo</string>
+    <string name="continue_remaining_min">Quedan %1$d min</string>
+    <string name="continue_remaining_h">Quedan %1$d h %2$d min</string>
+    <string name="continue_remove_title">Quitar de «Seguir viendo»</string>
+    <string name="continue_remove_msg">¿Quitar «%1$s» de la lista?</string>
+    <string name="continue_remove">Quitar</string>
+    <string name="resume_title">¿Continuar donde lo dejaste?</string>
+    <string name="resume_from">Continuar desde %1$s</string>
+    <string name="resume_start">Desde el principio</string>
+
+    <!-- Reproductor -->
+    <string name="open_vlc">Abrir con VLC</string>
+    <string name="vlc_missing">VLC no está instalado. Búscalo en la tienda de aplicaciones.</string>
+    <string name="player_err_decoding">Este dispositivo no puede decodificar este vídeo (suele pasar con películas 4K o HEVC en aparatos que no son 4K).\n\nPrueba a abrirlo con VLC o busca la versión en HD/FHD.</string>
+    <string name="player_err_start">El canal no responde. Puede estar caído en este momento o el servidor va saturado.\n\nPrueba otra vez en unos segundos o elige otro canal.</string>
+
+    <!-- Pantalla de carga -->
+    <string name="loading_title">Preparando tu lista…</string>
+    <string name="loading_hint">La primera vez puede tardar un poco con listas grandes. Las siguientes veces se abre al momento.</string>
+
+    <!-- Temporadas -->
+    <string name="season_fmt">Temporada %1$d</string>
+    <string name="season_other">Otros episodios</string>
+
+    <!-- Idioma -->
+    <string name="lang_title">Ver solo un idioma</string>
+    <string name="lang_all">Todos los idiomas</string>
+    <string name="lang_all_short">Todos</string>
+    <string name="lang_button_fmt">🌐 %1$s</string>
+
+    <!-- Ajustes -->
+    <string name="settings_title">Ajustes</string>
+    <string name="settings_parental">Control parental (PIN y grupos bloqueados)</string>
+    <string name="settings_afr_on">Ajuste automático de imagen (AFR): Activado</string>
+    <string name="settings_afr_off">Ajuste automático de imagen (AFR): Desactivado</string>
+    <string name="settings_afr_enabled">AFR activado: la tele se adaptará a cada vídeo para evitar tirones. Al empezar un vídeo la pantalla puede quedarse en negro un segundo. Si en esta tele la imagen se congela, desactívalo.</string>
+    <string name="settings_afr_disabled">AFR desactivado.</string>
+
+    <!-- Zapping y episodios -->
+    <string name="next_title_fmt">Siguiente episodio en %1$d s</string>
+    <string name="next_now">Ver ahora</string>
+    <string name="zap_not_found">No hay ningún canal con el número %1$d</string>
+    <string name="zap_previous">↩  Canal anterior</string>
+    <string name="player_err_frozen">La imagen de este canal se queda congelada en este aparato (el sonido sí llega). Suele deberse a que la tele no es capaz de decodificar este formato de vídeo.\n\nPrueba a abrirlo con VLC o elige otra calidad del mismo canal.</string>
+    <string name="player_err_detail">Detalle técnico: %1$s</string>
+    <string name="player_err_no_answer">sin respuesta del servidor</string>
+    <string name="recent_searches">🕘 Recientes:</string>
+
+    <!-- Ficha de película -->
+    <string name="detail_play">▶  Ver</string>
+    <string name="detail_continue">▶  Continuar (%1$s)</string>
+    <string name="detail_fav_add">☆  Favorito</string>
+    <string name="detail_fav_remove">★  En favoritos</string>
+    <string name="detail_minutes">%1$d min</string>
+    <string name="detail_hours">%1$d h %2$d min</string>
+    <string name="detail_director">Dirección: %1$s</string>
+    <string name="detail_cast">Reparto: %1$s</string>
+    <string name="detail_no_info">Sin sinopsis disponible.</string>
+    <!-- Canales agrupados -->
+    <string name="quality_title">%1$s · elige calidad</string>
+    <string name="settings_group_on">Agrupar canales repetidos (SD/HD/FHD): Sí</string>
+    <string name="settings_group_off">Agrupar canales repetidos (SD/HD/FHD): No</string>
+    <string name="quality_normal">Normal</string>
+
+    <!-- Motor VLC -->
+    <string name="try_vlc">Probar con VLC</string>
+    <string name="engine_switching">Cambiando al motor VLC…</string>
+    <string name="engine_vlc_badge">Motor VLC</string>
+    <string name="engine_title">Motor de reproducción</string>
+    <string name="engine_auto">Automático (recomendado): VLC solo si el principal falla</string>
+    <string name="engine_vlc">Siempre VLC</string>
+    <string name="engine_exo">Solo el motor principal</string>
+    <string name="settings_engine_fmt">Motor de reproducción: %1$s</string>
+    <string name="engine_auto_short">Automático</string>
+    <string name="engine_vlc_short">Siempre VLC</string>
+    <string name="engine_exo_short">Solo principal</string>
+    <string name="vlc_paused">⏸  Pausa</string>
+    <string name="vlc_playing">▶  Reproduciendo</string>
+</resources>
