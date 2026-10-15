@@ -1,0 +1,686 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Retro IPTV · Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0b09; --surface: rgba(26,23,20,.88); --surface-2: #26221e; --line: #3d3530;
+    --amber: #e0a04a; --amber-2: #f2c27e; --amber-dim: rgba(224,160,74,.18);
+    --text: #f3ede4; --text-2: #b0a699; --muted: #7d7469; --error: #e58a6e; --ok: #9cc58a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    font-family: Inter, system-ui, sans-serif; color: var(--text); background: var(--bg);
+    background-image:
+      radial-gradient(ellipse 70% 45% at 50% -5%, rgba(232,178,110,.28), transparent 70%),
+      linear-gradient(90deg, rgba(62,24,22,.55), transparent 16%, transparent 84%, rgba(62,24,22,.55)),
+      linear-gradient(180deg, #1f1712, #0d0b09 60%);
+    background-attachment: fixed;
+  }
+  .wrap { max-width: 820px; margin: 0 auto; padding: 32px 16px 64px; }
+  header { text-align: center; margin-bottom: 24px; }
+  h1 { font-family: "Cormorant Garamond", serif; font-size: 42px; letter-spacing: .18em; margin: 0; }
+  header p { color: var(--text-2); margin: 4px 0 0; }
+  .userbar { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 12px; color: var(--text-2); font-size: 14px; }
+  .card { background: var(--surface); border: 1px solid rgba(243,237,228,.12); border-radius: 18px; padding: 22px; margin-bottom: 18px; backdrop-filter: blur(6px); }
+  .label { color: var(--amber); font-size: 12px; letter-spacing: .15em; font-weight: 600; text-transform: uppercase; margin: 0 0 12px; }
+  label { display: block; font-size: 13px; color: var(--text-2); margin: 12px 0 6px; }
+  input {
+    width: 100%; padding: 13px 14px; border-radius: 12px; border: 1px solid var(--line);
+    background: #141210; color: var(--text); font: inherit; font-size: 16px; outline: none;
+  }
+  input:focus { border-color: var(--amber); box-shadow: 0 0 0 3px var(--amber-dim); }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .row > * { flex: 1 1 200px; }
+  button {
+    font: inherit; font-weight: 600; cursor: pointer; border-radius: 12px; padding: 12px 18px;
+    border: 2px solid var(--line); background: transparent; color: var(--text); transition: .15s;
+  }
+  button:hover, button:focus-visible { border-color: var(--amber-2); background: var(--amber-dim); outline: none; }
+  button.primary { background: var(--amber); border-color: var(--amber); color: #1c1208; }
+  button.primary:hover, button.primary:focus-visible { background: var(--amber-2); border-color: var(--amber-2); }
+  button.small { padding: 7px 12px; font-size: 14px; border-width: 1px; }
+  button.danger:hover { border-color: var(--error); background: rgba(229,138,110,.15); }
+  button:disabled { opacity: .5; cursor: default; }
+  .full { width: 100%; margin-top: 18px; }
+  .seg { display: flex; border: 2px solid var(--line); border-radius: 12px; overflow: hidden; margin-top: 4px; }
+  .seg button { flex: 1; border: 0; border-radius: 0; }
+  .seg button.on { background: var(--amber); color: #1c1208; }
+  .msg { margin-top: 14px; padding: 12px 14px; border-radius: 12px; font-size: 14px; display: none; }
+  .msg.show { display: block; }
+  .msg.err { background: rgba(229,138,110,.12); color: var(--error); border: 1px solid rgba(229,138,110,.35); }
+  .msg.ok { background: rgba(156,197,138,.1); color: var(--ok); border: 1px solid rgba(156,197,138,.3); }
+  .head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
+  .head .label { margin: 0; }
+  .mono { font-family: ui-monospace, Menlo, Consolas, monospace; }
+  .dev { display: flex; align-items: center; gap: 14px; padding: 14px; border: 1px solid var(--line); border-radius: 14px; margin-top: 10px; background: rgba(20,18,16,.6); cursor: pointer; transition: .15s; }
+  .dev:hover, .dev:focus-visible { border-color: var(--amber-2); background: var(--amber-dim); outline: none; }
+  .dev .info { flex: 1; min-width: 0; }
+  .dev .title { font-weight: 600; font-size: 17px; }
+  .dev .sub { color: var(--muted); font-size: 13px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dev .count { color: var(--amber); font-size: 14px; white-space: nowrap; }
+  .device-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+  .device-head .id { color: var(--amber-2); font-size: 18px; }
+  .device-head .model { color: var(--text-2); font-size: 14px; margin-top: 2px; }
+  .pl { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 14px; margin-top: 10px; background: rgba(20,18,16,.6); }
+  .pl.active { border-color: var(--amber); background: var(--amber-dim); }
+  .pl .info { flex: 1; min-width: 0; }
+  .pl .name { font-weight: 600; }
+  .pl .detail { color: var(--muted); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .badge { font-size: 11px; font-weight: 600; letter-spacing: .08em; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--text-2); margin-left: 6px; vertical-align: middle; }
+  .badge.on { background: var(--amber); border-color: var(--amber); color: #1c1208; }
+  .badge.warn { border-color: rgba(229,138,110,.5); color: var(--error); }
+  .pl .actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+  .empty { color: var(--text-2); text-align: center; padding: 18px 0 6px; }
+  .hint { color: var(--muted); font-size: 13px; margin-top: 12px; line-height: 1.5; }
+  .center { text-align: center; }
+  .hidden { display: none !important; }
+  .stats { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .stat { border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; background: rgba(20,18,16,.6); font-size: 14px; }
+  .stat b { color: var(--amber-2); font-size: 18px; margin-right: 4px; }
+  .stat.bad b { color: var(--error); }
+  .stat.good b { color: var(--ok); }
+  .sub-label { color: var(--text-2); font-size: 13px; font-weight: 600; margin: 18px 0 6px; }
+  .top li { margin: 4px 0; font-size: 14px; }
+  .top li span { color: var(--error); font-weight: 600; margin-left: 6px; }
+  .logs { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 6px; }
+  .logs th { text-align: left; color: var(--muted); font-weight: 600; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+  .logs td { padding: 6px 8px; border-bottom: 1px solid rgba(61,53,48,.5); vertical-align: top; }
+  .logs td.when { white-space: nowrap; color: var(--text-2); }
+  .logs .t-error, .logs .t-start_timeout, .logs .t-frozen { color: var(--error); }
+  .logs .t-stall, .logs .t-variant, .logs .t-engine_vlc { color: var(--amber-2); }
+  .logs .t-start_ok { color: var(--ok); }
+  .logwrap { max-height: 420px; overflow: auto; border: 1px solid var(--line); border-radius: 12px; margin-top: 8px; }
+  @media (max-width: 560px) {
+    h1 { font-size: 32px; }
+    .pl { flex-wrap: wrap; }
+    .pl .actions { width: 100%; justify-content: flex-start; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>RETRO IPTV</h1>
+    <p>Panel de administración</p>
+    <div id="userbar" class="userbar hidden">
+      <span id="userEmail"></span>
+      <button id="btnSignOut" class="small">Cerrar sesión</button>
+    </div>
+  </header>
+
+  <div id="cfgWarn" class="card hidden">
+    <p class="label">Falta configurar</p>
+    <p>Rellena <code>projectId</code> y <code>apiKey</code> en <code>config.js</code> (ver README).</p>
+  </div>
+
+  <!-- Inicio de sesión -->
+  <section id="signin" class="card center hidden">
+    <p class="label">Acceso de administrador</p>
+    <p style="color:var(--text-2)">Entra con la cuenta de Google autorizada en las reglas de Firebase.</p>
+    <button id="btnGoogle" class="primary full">Entrar con Google</button>
+    <div id="signinMsg" class="msg"></div>
+  </section>
+
+  <!-- Lista de dispositivos -->
+  <section id="devices" class="hidden">
+    <div class="card">
+      <div class="head">
+        <p class="label">Dispositivos</p>
+        <button id="btnReload" class="small">Actualizar</button>
+      </div>
+      <div id="devList"></div>
+      <div id="devMsg" class="msg"></div>
+      <p class="hint">Un dispositivo aparece aquí cuando se abre la app en él por primera vez con Internet. Pulsa sobre él para gestionar sus listas.</p>
+    </div>
+  </section>
+
+  <!-- Gestión de un dispositivo -->
+  <section id="manager" class="hidden">
+    <div class="card">
+      <div class="device-head">
+        <div>
+          <button id="btnBack" class="small" style="margin-bottom:12px">← Dispositivos</button>
+          <div class="id mono" id="devId"></div>
+          <div class="model" id="devModel"></div>
+        </div>
+        <div style="flex:1 1 240px;max-width:320px">
+          <label for="devName" style="margin-top:0">Nombre del dispositivo</label>
+          <input id="devName" placeholder="p. ej. TV de mamá">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="label">Listas de este dispositivo</p>
+      <div id="list"></div>
+      <p class="hint">La lista <b>Activa</b> es la que carga la app. Los cambios se aplican al abrir la app o al pulsar «Reiniciar» / «Actualizar lista» en el dispositivo.</p>
+    </div>
+
+    <div class="card">
+      <div class="head">
+        <p class="label">Informe de reproducción</p>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          <button id="btnLogLoad" class="small">Ver informe</button>
+          <button id="btnLogDownload" class="small hidden">Descargar (.json)</button>
+          <button id="btnLogClear" class="small danger hidden">Borrar informe</button>
+        </div>
+      </div>
+      <div id="logBox"></div>
+      <div id="logMsg" class="msg"></div>
+      <p class="hint">La TV apunta cuánto tarda cada canal en arrancar, los cortes, los errores y la imagen congelada, y lo envía aquí al salir del reproductor. Descarga el informe y pásaselo a Claude para afinar el rendimiento. No incluye usuarios ni contraseñas.</p>
+    </div>
+
+    <div class="card">
+      <p class="label" id="formTitle">Añadir lista</p>
+      <label for="fName">Nombre</label>
+      <input id="fName" placeholder="Mi proveedor">
+      <label>Tipo</label>
+      <div class="seg">
+        <button id="tM3u" class="on" type="button">URL M3U</button>
+        <button id="tXt" type="button">Xtream Codes</button>
+      </div>
+      <div id="boxM3u">
+        <label for="fUrl">URL de la lista</label>
+        <input id="fUrl" placeholder="http://servidor.com/lista.m3u" inputmode="url" autocomplete="off">
+      </div>
+      <div id="boxXt" class="hidden">
+        <label for="fHost">Servidor (host:puerto)</label>
+        <input id="fHost" placeholder="http://servidor.com:8080" inputmode="url" autocomplete="off">
+        <div class="row">
+          <div><label for="fUser">Usuario</label><input id="fUser" autocomplete="off"></div>
+          <div><label for="fPass">Contraseña</label><input id="fPass" autocomplete="off"></div>
+        </div>
+      </div>
+      <div class="row" style="margin-top:18px">
+        <button id="btnSave" class="primary">Añadir lista</button>
+        <button id="btnCancel" class="hidden">Cancelar edición</button>
+      </div>
+      <div id="formMsg" class="msg"></div>
+    </div>
+
+    <div class="card">
+      <p class="label">Zona peligrosa</p>
+      <button id="btnDeleteDevice" class="small danger">Eliminar este dispositivo del panel</button>
+      <p class="hint">Útil para TVs que ya no se usan. Si la app se vuelve a abrir en ese dispositivo, reaparecerá vacío.</p>
+    </div>
+  </section>
+</div>
+
+<script src="config.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const CFG = window.CINE_CONFIG || {};
+const $ = id => document.getElementById(id);
+const show = (id, on = true) => $(id).classList.toggle("hidden", !on);
+
+let auth = null;
+let devices = [];       // [{ docId, playlists, active, updatedAt, model, name }]
+let current = null;     // dispositivo abierto
+let editIndex = -1;
+let formType = "m3u";
+
+// ---------- Arranque ----------
+if (!CFG.projectId || !CFG.apiKey) {
+  show("cfgWarn");
+} else {
+  const app = initializeApp({
+    apiKey: CFG.apiKey,
+    projectId: CFG.projectId,
+    authDomain: CFG.authDomain || `${CFG.projectId}.firebaseapp.com`,
+  });
+  auth = getAuth(app);
+  onAuthStateChanged(auth, user => {
+    if (user) {
+      $("userEmail").textContent = user.email;
+      show("userbar"); show("signin", false);
+      loadDevices();
+    } else {
+      show("userbar", false); show("devices", false); show("manager", false);
+      show("signin");
+    }
+  });
+}
+
+// ---------- Firestore REST con el token del admin ----------
+const BASE = () =>
+  `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(CFG.projectId)}/databases/(default)/documents/devices`;
+
+async function api(path, opts = {}) {
+  const token = await auth.currentUser.getIdToken();
+  const sep = path.includes("?") ? "&" : "?";
+  const r = await fetch(`${BASE()}${path}${sep}key=${encodeURIComponent(CFG.apiKey)}`, {
+    ...opts,
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+  });
+  if (r.status === 401 || r.status === 403) throw new Error("forbidden");
+  if (r.status === 404) throw new Error("notfound");
+  if (!r.ok) throw new Error("http" + r.status);
+  const text = await r.text();
+  return text ? JSON.parse(text) : null;
+}
+
+const s = v => (v && typeof v.stringValue === "string") ? v.stringValue : "";
+const n = v => v ? (parseInt(v.integerValue ?? v.doubleValue ?? "0", 10) || 0) : 0;
+
+function fromFs(docId, fields = {}) {
+  const raw = fields.playlists?.arrayValue?.values || [];
+  const playlists = raw.map(v => {
+    const m = v.mapValue?.fields || {};
+    return { name: s(m.name), type: s(m.type) || "m3u", url: s(m.url), host: s(m.host), user: s(m.user), pass: s(m.pass) };
+  });
+  // "label" = "modelo || nombre elegido"
+  const [model, name] = s(fields.label).split(" || ");
+  return { docId, playlists, active: n(fields.active), updatedAt: n(fields.updatedAt), model: model || "", name: name || "" };
+}
+
+function toFs(d, bump) {
+  if (bump) d.updatedAt = Date.now();
+  const str = v => ({ stringValue: String(v ?? "") });
+  const values = d.playlists.map(p => ({ mapValue: { fields: {
+    name: str(p.name), type: str(p.type), url: str(p.url), host: str(p.host), user: str(p.user), pass: str(p.pass)
+  } } }));
+  const label = d.name ? `${d.model} || ${d.name}` : d.model;
+  return { fields: {
+    playlists: { arrayValue: values.length ? { values } : {} },
+    active: { integerValue: String(Math.max(0, Math.min(d.active, Math.max(d.playlists.length - 1, 0)))) },
+    updatedAt: { integerValue: String(d.updatedAt || 0) },
+    label: str(label),
+  } };
+}
+
+// ---------- Utilidades ----------
+function msg(el, text, type = "err") {
+  el.textContent = text;
+  el.className = "msg show " + type;
+  if (type === "ok") setTimeout(() => el.classList.remove("show"), 2500);
+}
+function errText(e) {
+  if (e.message === "forbidden") return "Esta cuenta no tiene permiso. Comprueba que el email de las reglas de Firestore es el tuyo.";
+  if (e.message === "notfound") return "El dispositivo ya no existe.";
+  if (e.message.startsWith("http")) return "Error del servidor (" + e.message.slice(4) + ").";
+  return "No se pudo conectar. Comprueba tu conexión a Internet.";
+}
+const prettyId = docId => docId.split("-")[0].match(/.{2}/g).join(":");
+const el = (tag, cls, text) => {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
+};
+const plName = p => p.name || (p.type === "xtream" ? "Xtream " + p.user : "Lista M3U");
+
+// ---------- Sesión ----------
+$("btnGoogle").onclick = async () => {
+  try {
+    await signInWithPopup(auth, new GoogleAuthProvider());
+  } catch (e) {
+    const code = e.code || "";
+    msg($("signinMsg"),
+      code.includes("unauthorized-domain")
+        ? "Este dominio no está autorizado. Añádelo en Firebase → Authentication → Configuración → Dominios autorizados."
+        : code.includes("popup") ? "Se cerró la ventana de Google. Inténtalo de nuevo."
+        : "No se pudo iniciar sesión (" + code + ").");
+  }
+};
+$("btnSignOut").onclick = () => signOut(auth);
+
+// ---------- Lista de dispositivos ----------
+async function loadDevices() {
+  show("manager", false); show("devices");
+  $("devList").replaceChildren(el("p", "empty", "Cargando…"));
+  $("devMsg").className = "msg";
+  try {
+    const all = [];
+    let pageToken = "";
+    do {
+      const res = await api(`?pageSize=300${pageToken ? "&pageToken=" + encodeURIComponent(pageToken) : ""}`);
+      (res?.documents || []).forEach(d => all.push(fromFs(d.name.split("/").pop(), d.fields)));
+      pageToken = res?.nextPageToken || "";
+    } while (pageToken);
+    devices = all.sort((a, b) => (a.name || a.model).localeCompare(b.name || b.model, "es"));
+    renderDevices();
+  } catch (e) {
+    $("devList").replaceChildren();
+    msg($("devMsg"), errText(e));
+  }
+}
+
+function renderDevices() {
+  const box = $("devList"); box.replaceChildren();
+  if (!devices.length) {
+    box.append(el("p", "empty", "Todavía no hay dispositivos. Abre la app en una TV con Internet y pulsa «Actualizar»."));
+    return;
+  }
+  devices.forEach(d => {
+    const row = el("div", "dev");
+    row.tabIndex = 0;
+    const info = el("div", "info");
+    const title = el("div", "title", d.name || d.model || "Dispositivo sin nombre");
+    if (!d.playlists.length) title.append(el("span", "badge warn", "SIN LISTA"));
+    const active = d.playlists[d.active] || d.playlists[0];
+    const sub = el("div", "sub mono", prettyId(d.docId) + (d.name && d.model ? "  ·  " + d.model : ""));
+    info.append(title, sub);
+    if (active) info.append(el("div", "sub", "Activa: " + plName(active)));
+    row.append(info, el("div", "count", d.playlists.length + (d.playlists.length === 1 ? " lista" : " listas")));
+    row.onclick = () => openDevice(d);
+    row.onkeydown = e => { if (e.key === "Enter") openDevice(d); };
+    box.append(row);
+  });
+}
+
+$("btnReload").onclick = loadDevices;
+
+// ---------- Gestión de un dispositivo ----------
+function openDevice(d) {
+  current = d;
+  show("devices", false); show("manager");
+  $("devId").textContent = prettyId(d.docId);
+  $("devModel").textContent = d.model ? "Modelo: " + d.model : "";
+  $("devName").value = d.name;
+  logDocs = []; logEvents = [];
+  $("logBox").replaceChildren();
+  $("logMsg").className = "msg";
+  show("btnLogDownload", false); show("btnLogClear", false);
+  resetForm();
+  renderList();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+$("btnBack").onclick = () => { current = null; show("manager", false); show("devices"); renderDevices(); };
+
+async function saveCurrent(bump) {
+  await api("/" + current.docId + "?currentDocument.exists=true", {
+    method: "PATCH",
+    body: JSON.stringify(toFs(current, bump)),
+  });
+}
+
+/** Aplica un cambio, lo guarda y, si falla, deshace. */
+async function mutate(change, okText, bump = true) {
+  const backup = JSON.parse(JSON.stringify(current));
+  change();
+  renderList();
+  try {
+    await saveCurrent(bump);
+    msg($("formMsg"), okText, "ok");
+  } catch (e) {
+    Object.assign(current, backup);
+    renderList();
+    msg($("formMsg"), errText(e));
+  }
+}
+
+function renderList() {
+  const box = $("list"); box.replaceChildren();
+  if (!current.playlists.length) {
+    box.append(el("p", "empty", "Este dispositivo aún no tiene listas. Añade la primera abajo."));
+    return;
+  }
+  current.playlists.forEach((p, i) => {
+    const isActive = i === current.active;
+    const row = el("div", "pl" + (isActive ? " active" : ""));
+    const info = el("div", "info");
+    const name = el("div", "name", plName(p));
+    name.append(el("span", "badge" + (isActive ? " on" : ""), isActive ? "ACTIVA" : (p.type === "xtream" ? "XTREAM" : "M3U")));
+    info.append(name, el("div", "detail", p.type === "xtream" ? `${p.host} · usuario: ${p.user}` : p.url));
+
+    const actions = el("div", "actions");
+    if (!isActive) {
+      const use = el("button", "small", "Activar");
+      use.onclick = () => mutate(() => { current.active = i; }, "Lista activada");
+      actions.append(use);
+    }
+    const edit = el("button", "small", "Editar");
+    edit.onclick = () => startEdit(i);
+    const del = el("button", "small danger", "Borrar");
+    del.onclick = () => {
+      if (!confirm(`¿Borrar la lista "${plName(p)}"?`)) return;
+      mutate(() => {
+        current.playlists.splice(i, 1);
+        if (current.active >= i && current.active > 0) current.active--;
+        if (editIndex === i) resetForm();
+      }, "Lista borrada");
+    };
+    actions.append(edit, del);
+    row.append(info, actions);
+    box.append(row);
+  });
+}
+
+// ---------- Informe de reproducción ----------
+let logDocs = [];     // nombres de los documentos del informe (para borrarlos)
+let logEvents = [];   // sucesos, el más reciente primero
+let logMeta = {};
+
+const TYPE_LABEL = {
+  start_ok: "Arranque", start_timeout: "No arranca", error: "Error",
+  variant: "Cambio de formato", stall: "Corte (cargando)", frozen: "Imagen congelada",
+  engine_vlc: "Cambio a VLC",
+};
+const fmtDate = t => new Date(t).toLocaleString("es-ES", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" });
+const secs = ms => (ms / 1000).toLocaleString("es-ES", { maximumFractionDigits: 1 }) + " s";
+
+function eventDetail(e) {
+  switch (e.type) {
+    case "start_ok": return `${secs(e.ms || 0)} · ${e.fmt || ""}`;
+    case "stall": return `cargando ${secs(e.ms || 0)}`;
+    case "start_timeout": return `sin respuesta en ${e.s || "?"} s · ${e.fmt || ""}`;
+    case "variant": return `${e.from || ""} → ${e.to || ""}${e.detail ? " (" + e.detail + ")" : ""}`;
+    case "frozen": return `intento ${e.attempt || 1} · ${e.fmt || ""}`;
+    case "engine_vlc": return `${e.auto ? "automático" : "manual"}${e.detail ? " (" + e.detail + ")" : ""}`;
+    case "error": return `${e.detail || ""}${e.started ? " · ya se estaba viendo" : ""}`;
+    default: return "";
+  }
+}
+
+async function loadLogs() {
+  const box = $("logBox");
+  box.replaceChildren(el("p", "empty", "Cargando informe…"));
+  $("logMsg").className = "msg";
+  try {
+    const docs = [];
+    let pageToken = "";
+    do {
+      const res = await api(`/${current.docId}/logs?pageSize=300${pageToken ? "&pageToken=" + encodeURIComponent(pageToken) : ""}`);
+      (res?.documents || []).forEach(d => docs.push(d));
+      pageToken = res?.nextPageToken || "";
+    } while (pageToken);
+    logDocs = docs.map(d => d.name.split("/documents/devices")[1]);
+    logEvents = [];
+    logMeta = {};
+    docs.forEach(d => {
+      const f = d.fields || {};
+      logMeta = { model: s(f.model) || logMeta.model, app: s(f.app) || logMeta.app };
+      try { JSON.parse(s(f.events) || "[]").forEach(e => logEvents.push(e)); } catch (_) {}
+    });
+    logEvents.sort((a, b) => (b.t || 0) - (a.t || 0));
+    renderLogs();
+  } catch (e) {
+    box.replaceChildren();
+    msg($("logMsg"), e.message === "notfound" ? "Todavía no hay informe de este dispositivo." : errText(e));
+  }
+}
+
+function renderLogs() {
+  const box = $("logBox"); box.replaceChildren();
+  show("btnLogDownload", logEvents.length > 0);
+  show("btnLogClear", logDocs.length > 0);
+  if (!logEvents.length) {
+    box.append(el("p", "empty", "Todavía no hay datos. Se envían cuando la TV sale del reproductor."));
+    return;
+  }
+  const count = t => logEvents.filter(e => e.type === t).length;
+  const starts = logEvents.filter(e => e.type === "start_ok" && e.ms);
+  const avg = starts.length ? starts.reduce((a, e) => a + e.ms, 0) / starts.length : 0;
+  const slow = starts.filter(e => e.ms > 8000).length;
+  const stats = el("div", "stats");
+  const stat = (n, text, cls = "") => { const d = el("div", "stat " + cls); d.append(el("b", null, String(n)), document.createTextNode(text)); stats.append(d); };
+  stat(starts.length, " arranques correctos", "good");
+  if (starts.length) stat(secs(avg), " de media en arrancar");
+  if (slow) stat(slow, " tardaron más de 8 s", "bad");
+  stat(count("stall"), " cortes", count("stall") ? "bad" : "");
+  stat(count("start_timeout"), " no arrancaron", count("start_timeout") ? "bad" : "");
+  stat(count("error"), " errores", count("error") ? "bad" : "");
+  stat(count("frozen"), " imagen congelada", count("frozen") ? "bad" : "");
+  stat(count("variant"), " cambios de formato");
+  if (count("engine_vlc")) stat(count("engine_vlc"), " pasaron a VLC");
+  box.append(stats);
+
+  // Canales con más problemas
+  const bad = {};
+  logEvents.filter(e => ["stall", "start_timeout", "error", "frozen"].includes(e.type) && e.ch)
+    .forEach(e => { bad[e.ch] = (bad[e.ch] || 0) + 1; });
+  const top = Object.entries(bad).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  if (top.length) {
+    box.append(el("p", "sub-label", "Canales con más problemas"));
+    const ul = el("ul", "top");
+    top.forEach(([name, n]) => { const li = el("li", null, name); li.append(el("span", null, "× " + n)); ul.append(li); });
+    box.append(ul);
+  }
+
+  // Últimos sucesos
+  box.append(el("p", "sub-label", `Últimos sucesos (${Math.min(logEvents.length, 200)} de ${logEvents.length})`));
+  const wrap = el("div", "logwrap");
+  const table = el("table", "logs");
+  const head = el("tr");
+  ["Cuándo", "Qué", "Canal / vídeo", "Detalle"].forEach(h => head.append(el("th", null, h)));
+  table.append(head);
+  logEvents.slice(0, 200).forEach(e => {
+    const tr = el("tr");
+    tr.append(el("td", "when", e.t ? fmtDate(e.t) : ""), el("td", "t-" + e.type, TYPE_LABEL[e.type] || e.type),
+      el("td", null, e.ch || ""), el("td", null, eventDetail(e)));
+    table.append(tr);
+  });
+  wrap.append(table);
+  box.append(wrap);
+}
+
+$("btnLogLoad").onclick = loadLogs;
+
+$("btnLogDownload").onclick = () => {
+  const data = {
+    device: prettyId(current.docId), name: current.name, model: logMeta.model || current.model,
+    app: logMeta.app || "", exportedAt: new Date().toISOString(), events: logEvents,
+  };
+  const blob = new Blob([JSON.stringify(data, null, 1)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-");
+  a.download = `informe-retroiptv-${(current.name || current.docId.split("-")[0]).replace(/[^\w-]+/g, "_")}-${stamp}.json`;
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+};
+
+async function deleteLogs(docId, names) {
+  for (const n of names) await api(n, { method: "DELETE" });
+}
+
+$("btnLogClear").onclick = async () => {
+  if (!confirm("¿Borrar todo el informe de este dispositivo? Descárgalo antes si lo necesitas.")) return;
+  try {
+    await deleteLogs(current.docId, logDocs);
+    logDocs = []; logEvents = [];
+    renderLogs();
+    msg($("logMsg"), "Informe borrado", "ok");
+  } catch (e) {
+    msg($("logMsg"), errText(e));
+  }
+};
+
+// ---------- Formulario ----------
+function setType(t) {
+  formType = t;
+  $("tM3u").classList.toggle("on", t === "m3u");
+  $("tXt").classList.toggle("on", t === "xtream");
+  show("boxM3u", t === "m3u");
+  show("boxXt", t === "xtream");
+}
+
+function resetForm() {
+  editIndex = -1;
+  ["fName", "fUrl", "fHost", "fUser", "fPass"].forEach(k => $(k).value = "");
+  setType("m3u");
+  $("formTitle").textContent = "Añadir lista";
+  $("btnSave").textContent = "Añadir lista";
+  show("btnCancel", false);
+}
+
+function startEdit(i) {
+  const p = current.playlists[i];
+  editIndex = i;
+  $("fName").value = p.name; $("fUrl").value = p.url;
+  $("fHost").value = p.host; $("fUser").value = p.user; $("fPass").value = p.pass;
+  setType(p.type === "xtream" ? "xtream" : "m3u");
+  $("formTitle").textContent = "Editar lista";
+  $("btnSave").textContent = "Guardar cambios";
+  show("btnCancel");
+  $("fName").scrollIntoView({ behavior: "smooth", block: "center" });
+  $("fName").focus();
+}
+
+function readForm() {
+  const p = { name: $("fName").value.trim(), type: formType, url: "", host: "", user: "", pass: "" };
+  if (formType === "m3u") {
+    p.url = $("fUrl").value.trim();
+    if (!/^https?:\/\//i.test(p.url)) throw new Error("La URL debe empezar por http:// o https://");
+  } else {
+    p.host = $("fHost").value.trim(); p.user = $("fUser").value.trim(); p.pass = $("fPass").value.trim();
+    if (!p.host || !p.user || !p.pass) throw new Error("Rellena servidor, usuario y contraseña.");
+  }
+  return p;
+}
+
+$("btnSave").onclick = () => {
+  let p;
+  try { p = readForm(); } catch (e) { return msg($("formMsg"), e.message); }
+  if (editIndex >= 0) {
+    const i = editIndex;
+    mutate(() => { current.playlists[i] = p; }, "Cambios guardados");
+  } else {
+    if (current.playlists.length >= 20) return msg($("formMsg"), "Máximo 20 listas por dispositivo.");
+    mutate(() => {
+      current.playlists.push(p);
+      if (current.playlists.length === 1) current.active = 0;
+    }, "Lista añadida");
+  }
+  resetForm();
+};
+$("btnCancel").onclick = resetForm;
+$("tM3u").onclick = () => setType("m3u");
+$("tXt").onclick = () => setType("xtream");
+
+// Cambiar el nombre no obliga a la TV a recargar la lista
+$("devName").addEventListener("change", () => {
+  const name = $("devName").value.trim().replace(/\|\|/g, "|").slice(0, 40);
+  if (name !== current.name) mutate(() => { current.name = name; }, "Nombre guardado", false);
+});
+
+$("btnDeleteDevice").onclick = async () => {
+  if (!confirm("¿Eliminar este dispositivo y todas sus listas del panel?")) return;
+  try {
+    // Primero el informe (si no, quedaría huérfano en la base de datos)
+    try {
+      const res = await api(`/${current.docId}/logs?pageSize=300`);
+      await deleteLogs(current.docId, (res?.documents || []).map(d => d.name.split("/documents/devices")[1]));
+    } catch (_) {}
+    await api("/" + current.docId, { method: "DELETE" });
+    devices = devices.filter(d => d.docId !== current.docId);
+    current = null;
+    show("manager", false); show("devices"); renderDevices();
+  } catch (e) {
+    msg($("formMsg"), errText(e));
+  }
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+rules_version = '2';
+
+// Reglas de seguridad para Retro IPTV.
+//
+// - ADMINISTRADOR (tu cuenta de Google): ve, crea, edita y borra todos los dispositivos.
+// - CADA TV (sin cuenta): solo puede leer SU documento "devices/AABBCCDDEEFF-123456"
+//   (ID sin ':' + clave), registrarse vacía la primera vez y cambiar cuál de sus
+//   listas está activa. No puede añadir, editar listas ni ver otros dispositivos.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ⚠️ Pon aquí el email de la cuenta de Google con la que administrarás el panel
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email == 'ale.fuentes.009@gmail.com';
+    }
+
+    match /devices/{docId} {
+      function validId() {
+        return docId.matches('^[0-9A-F]{12}-[0-9]{6}$');
+      }
+      function validData() {
+        let d = request.resource.data;
+        return d.keys().hasOnly(['playlists', 'active', 'updatedAt', 'label'])
+          && d.playlists is list
+          && d.playlists.size() <= 20
+          && d.active is int
+          && d.updatedAt is int;
+      }
+
+      allow get: if validId() || isAdmin();
+      allow list: if isAdmin();
+
+      // La TV solo puede registrarse sin listas; el admin puede crear lo que quiera
+      allow create: if validId() && validData()
+        && (isAdmin() || request.resource.data.playlists.size() == 0);
+
+      // La TV solo puede cambiar qué lista está activa
+      allow update: if validId() && validData()
+        && (isAdmin() || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['active']));
+
+      allow delete: if isAdmin();
+
+      // Informe de reproducción: la TV solo puede AÑADIR lotes (no leerlos ni borrarlos);
+      // el administrador los ve, descarga y borra desde el panel.
+      match /logs/{logId} {
+        allow create: if docId.matches('^[0-9A-F]{12}-[0-9]{6}$')
+          && request.resource.data.keys().hasOnly(['createdAt', 'model', 'app', 'events'])
+          && request.resource.data.createdAt is int
+          && request.resource.data.events is string
+          && request.resource.data.events.size() < 300000;
+        allow read, delete: if isAdmin();
+      }
+    }
+
+    // Todo lo demás, cerrado
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
