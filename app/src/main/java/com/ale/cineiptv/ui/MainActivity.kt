@@ -26,6 +26,7 @@ import com.ale.cineiptv.data.XtreamCreds
 import com.ale.cineiptv.databinding.ActivityMainBinding
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.IOException
 import java.util.Locale
@@ -68,6 +69,7 @@ class MainActivity : AppCompatActivity() {
         showPanel(initial)
 
         b.btnPickFile.setOnClickListener { openFilePicker() }
+        b.btnRemoteRefresh.setOnClickListener { lifecycleScope.launch { checkPanel(manual = true) } }
         b.btnCancelLoad.setOnClickListener {
             startupJob?.cancel()
             loadJob?.cancel()
@@ -154,8 +156,59 @@ class MainActivity : AppCompatActivity() {
     }
 
     /** Muestra en la pantalla las listas asignadas a este dispositivo desde el panel. */
+    // ---------------------------------------------------------------- Comprobar el panel
+
+    private var pollJob: Job? = null
+
+    /**
+     * Vuelve a consultar el panel. Si allí se ha asignado o cambiado una lista,
+     * se carga directamente (sin tener que cerrar y abrir la app).
+     */
+    private suspend fun checkPanel(manual: Boolean) {
+        if (loadJob?.isActive == true) return
+        val remote = RemoteRepository.fetch(prefs)
+        showRemoteList(remote)
+        val playlist = remote?.activePlaylist
+        if (remote != null && playlist != null && remote.updatedAt != prefs.remoteSeenUpdatedAt) {
+            prefs.remoteSeenUpdatedAt = remote.updatedAt
+            loadRemote(playlist, forceDownload = false)
+        } else if (manual && remote != null && remote.playlists.isEmpty()) {
+            Toast.makeText(this, R.string.remote_still_empty, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /** Mientras no haya listas, se mira el panel cada 20 s (solo con esta pantalla abierta). */
+    private fun startPolling() {
+        if (pollJob?.isActive == true) return
+        pollJob = lifecycleScope.launch {
+            while (true) {
+                delay(20_000)
+                if (loadJob?.isActive != true) checkPanel(manual = false)
+            }
+        }
+    }
+
+    private fun stopPolling() {
+        pollJob?.cancel()
+        pollJob = null
+    }
+
+    override fun onPause() {
+        super.onPause()
+        stopPolling()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (::b.isInitialized && RemoteRepository.isConfigured && b.layoutRemote.childCount == 0 && b.panelRemote.isVisible) {
+            startPolling()
+        }
+    }
+
     private fun showRemoteList(remote: RemoteDevice?) {
         b.layoutRemote.removeAllViews()
+        // Sin listas (o sin conexión): seguir mirando el panel cada poco
+        if (remote == null || remote.playlists.isEmpty()) startPolling() else stopPolling()
         when {
             remote == null -> b.textRemoteHint.text = getString(R.string.remote_offline)
             remote.playlists.isEmpty() -> b.textRemoteHint.text = getString(R.string.remote_empty)

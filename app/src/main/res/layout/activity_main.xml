@@ -123,6 +123,15 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical" />
+
+                    <!-- Volver a consultar el panel (p. ej. justo después de asignar una lista) -->
+                    <Button
+                        android:id="@+id/btnRemoteRefresh"
+                        style="@style/Widget.Cine.Button.Outlined"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="@string/remote_refresh" />
                 </LinearLayout>
 
                 <!-- Fuente -->

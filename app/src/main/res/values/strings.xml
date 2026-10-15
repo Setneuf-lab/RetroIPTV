@@ -13,7 +13,7 @@
     <string name="remote_label">LISTAS DEL PANEL WEB</string>
     <string name="status_panel">Consultando el panel web…</string>
     <string name="remote_offline">No se pudo conectar con el panel. Se usa la lista guardada en este dispositivo.</string>
-    <string name="remote_empty">Aún no hay listas asignadas. Pide al administrador que te asigne una desde el panel (dile el ID de arriba) y pulsa Actualizar.</string>
+    <string name="remote_empty">Aún no hay listas asignadas. Pide al administrador que te asigne una desde el panel (dile el ID de arriba). En cuanto la asigne, se cargará sola en unos segundos.</string>
     <string name="remote_choose">Pulsa una lista para usarla (★ = activa):</string>
 
     <!-- Fuentes -->
@@ -294,4 +294,6 @@
     <string name="engine_exo_short">Solo principal</string>
     <string name="vlc_paused">⏸  Pausa</string>
     <string name="vlc_playing">▶  Reproduciendo</string>
+    <string name="remote_refresh">⟳  Comprobar ahora</string>
+    <string name="remote_still_empty">Todavía no hay ninguna lista asignada en el panel.</string>
 </resources>
