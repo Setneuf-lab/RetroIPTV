@@ -52,6 +52,33 @@ object Favorites {
             .put("type", ch.type.name).put("num", ch.number)
     }
 
+    /**
+     * Pone o quita de favoritos varios canales a la vez (todas las calidades de un canal
+     * agrupado: SD, HD, FHD…). Devuelve el nuevo estado.
+     */
+    fun setAll(channels: List<Channel>, favorite: Boolean): Boolean {
+        synchronized(items) {
+            for (ch in channels) {
+                val key = keyOf(ch)
+                if (favorite) {
+                    if (key !in items) items[key] = channelJson(ch).put("k", key)
+                } else {
+                    items.remove(key)
+                }
+            }
+        }
+        cachedChannels = null
+        cachedShows = null
+        version++
+        save()
+        return favorite
+    }
+
+    private fun channelJson(ch: Channel) = JSONObject()
+        .put("kind", "c").put("name", ch.name).put("url", ch.url).put("group", ch.group)
+        .put("logo", ch.logo ?: "").put("ua", ch.userAgent ?: "").put("ref", ch.referrer ?: "")
+        .put("type", ch.type.name).put("num", ch.number)
+
     fun toggle(show: SeriesShow): Boolean = toggle(keyOf(show)) {
         JSONObject()
             .put("kind", "s").put("name", show.name).put("group", show.group)

@@ -17,7 +17,13 @@ import com.ale.cineiptv.data.Prefs
 import com.ale.cineiptv.data.WatchHistory
 import com.ale.cineiptv.databinding.ActivityDetailBinding
 import com.ale.cineiptv.util.ChannelName
+import com.ale.cineiptv.util.DeviceCaps
+import com.ale.cineiptv.util.TitleKey
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Ficha de una película antes de verla: carátula, año, duración, nota, sinopsis y reparto,
@@ -48,8 +54,8 @@ class DetailActivity : AppCompatActivity() {
         b.textMeta.text = movie.group
         b.imagePoster.load(movie.logo) { crossfade(false); error(R.drawable.ic_placeholder) }
 
-        b.btnPlay.setOnClickListener { play(fromStart = false) }
-        b.btnFromStart.setOnClickListener { play(fromStart = true) }
+        b.btnPlay.setOnClickListener { playChecked(fromStart = false) }
+        b.btnFromStart.setOnClickListener { playChecked(fromStart = true) }
         b.btnFav.setOnClickListener {
             val nowFav = Favorites.toggle(movie)
             Toast.makeText(this, if (nowFav) R.string.fav_added else R.string.fav_removed, Toast.LENGTH_SHORT).show()
@@ -62,6 +68,99 @@ class DetailActivity : AppCompatActivity() {
             b.progressInfo.isVisible = false
             if (info != null) showInfo(info) else b.textPlot.setText(R.string.detail_no_info)
         }
+        loadVersions()
+    }
+
+    private val cantPlay4K: Boolean get() = DeviceCaps.is4K(movie.name) && !DeviceCaps.supports4K
+
+    /**
+     * Busca la misma película en otras calidades/idiomas ("Michael [4K]" → "Michael" HD, MULTI-SUB…).
+     * Si este aparato no puede con 4K, avisa y deja enfocada la mejor versión HD.
+     */
+    private fun loadVersions() {
+        val warn = cantPlay4K
+        b.textWarn4k.isVisible = warn
+        lifecycleScope.launch {
+            val all = runCatching {
+                if (PlaylistRepository.isXtream) PlaylistRepository.movieIndex(this@DetailActivity)
+                else PlaylistRepository.movies
+            }.getOrDefault(emptyList())
+            val versions = withContext(Dispatchers.Default) {
+                val key = TitleKey.of(movie.name)
+                if (key.title.length < 2) return@withContext emptyList()
+                val myLang = com.ale.cineiptv.util.LangFilter.codeOf(movie.name)
+                all.asSequence()
+                    .filter { it.url != movie.url && TitleKey.sameMovie(key, TitleKey.of(it.name)) }
+                    .distinctBy { it.url }
+                    .sortedWith(compareBy<Channel>(
+                        { if (DeviceCaps.is4K(it.name) && !DeviceCaps.supports4K) 1 else 0 },
+                        { if (com.ale.cineiptv.util.LangFilter.codeOf(it.name) == myLang) 0 else 1 },
+                        { -qualityScore(it.name) },
+                    ))
+                    .take(8)
+                    .toList()
+            }
+            if (versions.isEmpty()) return@launch
+            b.textVersions.isVisible = true
+            b.rowVersions.removeAllViews()
+            versions.forEachIndexed { i, ch ->
+                val unplayable = DeviceCaps.is4K(ch.name) && !DeviceCaps.supports4K
+                val recommended = warn && i == 0 && !unplayable
+                val btn = MaterialButton(this@DetailActivity, null, com.google.android.material.R.attr.materialButtonOutlinedStyle)
+                btn.isAllCaps = false
+                btn.text = versionLabel(ch, recommended)
+                btn.alpha = if (unplayable) 0.6f else 1f
+                btn.setOnClickListener { playVersion(ch) }
+                val lp = android.widget.LinearLayout.LayoutParams(
+                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+                if (i > 0) lp.marginStart = (10 * resources.displayMetrics.density).toInt()
+                b.rowVersions.addView(btn, lp)
+                if (recommended) btn.requestFocus()
+            }
+        }
+    }
+
+    /** "ES · HD (recomendada)", "EN · 4K", "MULTI-SUB"… */
+    private fun versionLabel(ch: Channel, recommended: Boolean): String {
+        val lang = com.ale.cineiptv.util.LangFilter.codeOf(ch.name)
+        val quality = ChannelName.split(ch.name).second
+        val parts = listOfNotNull(lang, quality).ifEmpty { listOf(ChannelName.split(ch.name).first.take(24)) }
+        val label = parts.joinToString(" · ")
+        return if (recommended) "▶ $label (" + getString(R.string.detail_recommended) + ")" else label
+    }
+
+    private fun qualityScore(name: String): Int {
+        val q = ChannelName.split(name).second?.uppercase().orEmpty()
+        return when {
+            DeviceCaps.is4K(name) -> 4
+            "FHD" in q || "1080" in q -> 3
+            "HD" in q || "720" in q -> 2
+            q.isEmpty() -> 1
+            else -> 0
+        }
+    }
+
+    private fun playVersion(ch: Channel) {
+        val go = {
+            PlaylistRepository.playQueue = listOf(ch)
+            PlaylistRepository.playShow = null
+            PlayerActivity.start(this, 0, isLive = false, resume = true)
+        }
+        if (DeviceCaps.is4K(ch.name) && !DeviceCaps.supports4K) confirm4K(go) else go()
+    }
+
+    private fun playChecked(fromStart: Boolean) {
+        if (cantPlay4K) confirm4K { play(fromStart) } else play(fromStart)
+    }
+
+    private fun confirm4K(onYes: () -> Unit) {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.detail_4k_confirm_title)
+            .setMessage(R.string.detail_4k_confirm)
+            .setPositiveButton(R.string.detail_4k_try) { _, _ -> onYes() }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
     }
 
     override fun onResume() {

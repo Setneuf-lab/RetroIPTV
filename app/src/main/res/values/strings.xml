@@ -273,6 +273,12 @@
     <string name="detail_hours">%1$d h %2$d min</string>
     <string name="detail_director">Dirección: %1$s</string>
     <string name="detail_cast">Reparto: %1$s</string>
+    <string name="detail_4k_warn">⚠ Este aparato no puede reproducir 4K (le falta el decodificador). Elige una versión HD de abajo.</string>
+    <string name="detail_versions">Otras versiones</string>
+    <string name="detail_4k_confirm_title">Película en 4K</string>
+    <string name="detail_4k_confirm">Este aparato no puede reproducir 4K y es probable que no se vea. ¿Intentarlo igualmente?</string>
+    <string name="detail_4k_try">Intentarlo</string>
+    <string name="detail_recommended">recomendada</string>
     <string name="detail_no_info">Sin sinopsis disponible.</string>
     <!-- Canales agrupados -->
     <string name="quality_title">%1$s · elige calidad</string>

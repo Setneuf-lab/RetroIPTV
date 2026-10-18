@@ -146,7 +146,8 @@ class ContentActivity : AppCompatActivity() {
             val g = ChannelGroup(key, partsOf(chosen).first, sortedVs, chosen)
             entries.add(g); channels.add(chosen)
             val badge = sortedVs.joinToString(" · ") { qualityLabel(partsOf(it).second) }
-            items.add(DisplayItem(g.name, chosen.group, chosen.logo, PlaylistRepository.numberOf(chosen), Favorites.isFavorite(chosen), badge))
+            items.add(DisplayItem(g.name, chosen.group, chosen.logo, PlaylistRepository.numberOf(chosen),
+                sortedVs.any { Favorites.isFavorite(it) }, badge))
         }
         return FilterResult(entries, channels, items)
     }
@@ -646,6 +647,22 @@ class ContentActivity : AppCompatActivity() {
         favShows.forEach {
             items.add(DisplayItem(it.name, "$seriesLabel · ${it.group}", it.logo, null, true))
         }
+        // Canales en vivo: las distintas calidades del mismo canal, en una sola fila
+        if (prefs.groupDuplicates) {
+            val live = favChannels.filter { it.type == ContentType.LIVE }
+            val others = favChannels.filter { it.type != ContentType.LIVE }
+            val grouped = groupDuplicates(live)
+            val entries = ArrayList<Any>()
+            entries.addAll(favShows)
+            entries.addAll(grouped.entries)
+            entries.addAll(others)
+            grouped.items.forEach { items.add(it.copy(subtitle = "$liveLabel · ${it.subtitle.orEmpty()}")) }
+            others.forEach { c ->
+                val label = if (c.type == ContentType.MOVIE) movieLabel else seriesLabel
+                items.add(DisplayItem(c.name, "$label · ${c.group}", c.logo, null, true))
+            }
+            return FilterResult(entries, grouped.channels + others, items)
+        }
         favChannels.forEach { c ->
             val label = when (c.type) {
                 ContentType.LIVE -> liveLabel
@@ -848,7 +865,8 @@ class ContentActivity : AppCompatActivity() {
     private fun toggleFavorite(position: Int) {
         val nowFav = when (val entry = visibleEntries.getOrNull(position)) {
             is Channel -> Favorites.toggle(entry)
-            is ChannelGroup -> Favorites.toggle(entry.chosen)
+            // Canal agrupado: entran (o salen) de favoritos TODAS sus calidades
+            is ChannelGroup -> Favorites.setAll(entry.variants, !entry.variants.any { Favorites.isFavorite(it) })
             is SeriesShow -> Favorites.toggle(entry)
             else -> return
         }
