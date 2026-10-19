@@ -58,6 +58,7 @@ class PlayerActivity : AppCompatActivity() {
 
     private lateinit var b: ActivityPlayerBinding
     private lateinit var prefs: Prefs
+    private lateinit var audio: AudioController
     private var player: ExoPlayer? = null
     private var queue: List<Channel> = emptyList()
     private var index = 0
@@ -143,7 +144,7 @@ class PlayerActivity : AppCompatActivity() {
         }
         vlcResumeAt = -1L
         playStartedAt = SystemClock.elapsedRealtime()
-        engine.play(ch.url, userAgent, ch.referrer, isLive, start)
+        engine.play(ch.url, userAgent, ch.referrer, isLive, start, prefs.audioLang)
         handler.removeCallbacks(vlcWatchdog)
         handler.postDelayed(vlcWatchdog, VLC_START_WATCHDOG_MS)
         if (!isLive) { handler.removeCallbacks(periodicSave); handler.postDelayed(periodicSave, SAVE_EVERY_MS) }
@@ -171,6 +172,7 @@ class PlayerActivity : AppCompatActivity() {
             if (!usingVlc) return
             handler.removeCallbacks(vlcWatchdog)
             b.panelError.isVisible = false
+            vlc?.setMuted(audio.radioOn)
             if (!vlcStarted) {
                 vlcStarted = true
                 PlayLog.event("start_ok", queue.getOrNull(index), mapOf(
@@ -202,6 +204,12 @@ class PlayerActivity : AppCompatActivity() {
             queue.getOrNull(index)?.let { prefs.clearPosition(it.url); WatchHistory.remove(it.url) }
             offerNextEpisode()
         }
+    }
+
+    /** Silencia el canal mientras suena la radio (en los dos motores). */
+    private fun applyMainVolume(muted: Boolean) {
+        player?.volume = if (muted) 0f else 1f
+        vlc?.setMuted(muted)
     }
 
     // ---- Posición y avance, sea cual sea el motor
@@ -286,6 +294,8 @@ class PlayerActivity : AppCompatActivity() {
         // Mientras se reconecta se queda la última imagen en vez de pantalla negra
         b.playerView.setKeepContentOnPlayerReset(true)
         b.btnSubtitles.setOnClickListener { b.playerView.hideController(); subtitles.openMenu() }
+        audio = AudioController(this, prefs, { player }, { vlc }, { usingVlc }, { isLive }) { muted -> applyMainVolume(muted) }
+        b.btnAudio.setOnClickListener { b.playerView.hideController(); audio.openMenu() }
         setupChannelPanel()
     }
 
@@ -339,6 +349,7 @@ class PlayerActivity : AppCompatActivity() {
             val shown = visibility == View.VISIBLE && !b.panelChannels.isVisible
             b.btnChannels.isVisible = shown && queue.size > 1
             b.btnSubtitles.isVisible = shown
+            b.btnAudio.isVisible = shown
         })
     }
 
@@ -357,6 +368,7 @@ class PlayerActivity : AppCompatActivity() {
         b.playerView.hideController()
         b.btnChannels.isVisible = false
         b.btnSubtitles.isVisible = false
+        b.btnAudio.isVisible = false
         b.panelChannels.isVisible = true
         closePanelOnBack.isEnabled = true
         val lm = b.recyclerChannels.layoutManager as LinearLayoutManager
@@ -384,6 +396,7 @@ class PlayerActivity : AppCompatActivity() {
         super.onStop()
         if (!::b.isInitialized) return
         savePosition()
+        audio.stopRadio()
         releasePlayer()
         restoreDisplayMode()
         PlayLog.flush()
@@ -451,13 +464,15 @@ class PlayerActivity : AppCompatActivity() {
             subtitles.resetDelay()   // la sincronización es de cada vídeo
             startAttempts = 0
             if (isLive) previousChannel = queue.getOrNull(index)
+            audio.stopRadio()   // la radio era para el canal que se estaba viendo
         }
         cancelNextEpisode()
         index = newIndex
         val ch = queue[index]
         PlaylistRepository.lastPlayed = ch
         // Subtítulos según las preferencias (idioma elegido la última vez, o desactivados)
-        p.trackSelectionParameters = subtitles.initialParameters(p.trackSelectionParameters)
+        p.trackSelectionParameters = audio.initialParameters(subtitles.initialParameters(p.trackSelectionParameters))
+        p.volume = if (audio.radioOn) 0f else 1f
         b.panelError.isVisible = false
         b.btnExternal.isVisible = false
         cancelSeek()
@@ -962,7 +977,8 @@ class PlayerActivity : AppCompatActivity() {
                     KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, KeyEvent.KEYCODE_MEDIA_PLAY, KeyEvent.KEYCODE_MEDIA_PAUSE -> {
                         vlc?.togglePause(); b.root.postDelayed({ showVlcStatus() }, 150); return true
                     }
-                    KeyEvent.KEYCODE_MENU, KeyEvent.KEYCODE_INFO, KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN -> {
+                    KeyEvent.KEYCODE_MENU, KeyEvent.KEYCODE_INFO -> { audio.openMenu(); return true }
+                    KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN -> {
                         showVlcStatus(); return true
                     }
                 }
@@ -988,8 +1004,11 @@ class PlayerActivity : AppCompatActivity() {
                 KeyEvent.KEYCODE_DPAD_RIGHT -> if (isLive && free && previousChannel != null) { zapPrevious(); return true }
                 KeyEvent.KEYCODE_LAST_CHANNEL -> if (isLive) { zapPrevious(); return true }
                 in KeyEvent.KEYCODE_0..KeyEvent.KEYCODE_9 -> if (isLive) { typeDigit(event.keyCode - KeyEvent.KEYCODE_0); return true }
-                KeyEvent.KEYCODE_MENU, KeyEvent.KEYCODE_INFO -> { b.playerView.showController(); return true }
+                KeyEvent.KEYCODE_MENU, KeyEvent.KEYCODE_INFO -> {
+                    if (usingVlc) audio.openMenu() else b.playerView.showController(); return true
+                }
                 KeyEvent.KEYCODE_CAPTIONS -> { subtitles.openMenu(); return true }
+                KeyEvent.KEYCODE_MEDIA_AUDIO_TRACK -> { audio.openMenu(); return true }
             }
         }
         return super.dispatchKeyEvent(event)

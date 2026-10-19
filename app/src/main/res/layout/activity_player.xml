@@ -37,6 +37,21 @@
         android:src="@drawable/ic_subtitles"
         android:visibility="gone" />
 
+    <!-- Botón de audio: pistas (idioma) y radio con la imagen -->
+    <ImageButton
+        android:id="@+id/btnAudio"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="@dimen/player_edge"
+        android:layout_marginEnd="@dimen/player_edge"
+        android:translationX="-128dp"
+        android:background="@drawable/bg_player_button"
+        android:contentDescription="@string/audio_title"
+        android:focusable="true"
+        android:src="@drawable/ic_audio"
+        android:visibility="gone" />
+
     <!-- Botón para abrir la lista de canales -->
     <ImageButton
         android:id="@+id/btnChannels"

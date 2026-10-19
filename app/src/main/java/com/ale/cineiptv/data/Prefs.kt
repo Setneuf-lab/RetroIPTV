@@ -140,6 +140,16 @@ class Prefs(context: Context) {
 
     // --- "Continuar viendo" para películas y episodios ---
     /** Motor de reproducción: "auto" (VLC si el principal falla), "vlc" o "exo". */
+    /** Idioma de audio elegido la última vez ("spa", "eng"…); vacío = el que venga. */
+    var audioLang: String
+        get() = sp.getString("audio_lang", "").orEmpty()
+        set(v) = sp.edit().putString("audio_lang", v).apply()
+
+    /** Último retraso usado para la radio con imagen (segundos). */
+    var radioDelaySec: Int
+        get() = sp.getInt("radio_delay", 0)
+        set(v) = sp.edit().putInt("radio_delay", v).apply()
+
     var engineMode: String
         get() = sp.getString("engine_mode", "auto") ?: "auto"
         set(v) = sp.edit().putString("engine_mode", v).apply()

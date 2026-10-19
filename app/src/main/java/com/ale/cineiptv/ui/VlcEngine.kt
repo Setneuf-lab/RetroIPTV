@@ -50,7 +50,7 @@ class VlcEngine(context: Context, private val layout: VLCVideoLayout) {
      * Reproduce [url]. En directo se guarda un colchón mayor (como el motor principal),
      * en películas se empieza en [startMs].
      */
-    fun play(url: String, userAgent: String, referrer: String?, isLive: Boolean, startMs: Long) {
+    fun play(url: String, userAgent: String, referrer: String?, isLive: Boolean, startMs: Long, audioLang: String = "") {
         if (!attached) {
             player.attachViews(layout, null, false, false)
             attached = true
@@ -60,6 +60,7 @@ class VlcEngine(context: Context, private val layout: VLCVideoLayout) {
         media.addOption(":network-caching=" + if (isLive) LIVE_CACHE_MS else VOD_CACHE_MS)
         media.addOption(":http-user-agent=$userAgent")
         referrer?.let { media.addOption(":http-referrer=$it") }
+        if (audioLang.isNotEmpty()) media.addOption(":audio-language=$audioLang")
         if (!isLive && startMs > 0) media.addOption(":start-time=" + startMs / 1000.0)
         player.media = media
         media.release()
@@ -69,6 +70,14 @@ class VlcEngine(context: Context, private val layout: VLCVideoLayout) {
     val isPlaying: Boolean get() = player.isPlaying
     val positionMs: Long get() = player.time.coerceAtLeast(0)
     val durationMs: Long get() = player.length.coerceAtLeast(0)
+
+    /** Pistas de audio (id, nombre). Se excluye "Desactivar" (id -1). */
+    fun audioTracks(): List<Pair<Int, String>> =
+        player.audioTracks?.filter { it.id >= 0 }?.map { it.id to it.name.orEmpty() }.orEmpty()
+
+    val audioTrack: Int get() = player.audioTrack
+    fun setAudioTrack(id: Int) { player.setAudioTrack(id) }
+    fun setMuted(muted: Boolean) { player.setVolume(if (muted) 0 else 100) }
 
     fun seekTo(ms: Long) { player.setTime(ms.coerceAtLeast(0)) }
     fun togglePause() { if (player.isPlaying) player.pause() else player.play() }

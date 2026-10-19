@@ -302,4 +302,24 @@
     <string name="vlc_playing">▶  Reproduciendo</string>
     <string name="remote_refresh">⟳  Comprobar ahora</string>
     <string name="remote_still_empty">Todavía no hay ninguna lista asignada en el panel.</string>
+
+    <!-- Audio -->
+    <string name="audio_title">Audio</string>
+    <string name="audio_track_fmt">Pista %1$d</string>
+    <string name="audio_only_one">Este contenido solo trae una pista de audio</string>
+    <string name="audio_none">Aún no hay pistas de audio (espera a que empiece)</string>
+    <string name="audio_radio_add">📻  Poner una radio con esta imagen…</string>
+    <string name="audio_radio_on">📻  Radio: %1$s · retraso %2$d s (ajustar)</string>
+    <string name="audio_radio_off">✕  Quitar la radio (volver al sonido del canal)</string>
+    <string name="audio_radio_pick">Elige una radio</string>
+    <string name="audio_radio_none">No hay emisoras de radio en tu lista</string>
+    <string name="audio_radio_starting">Radio: %1$s. Ajusta el retraso hasta que vaya a la par.</string>
+    <string name="audio_radio_failed">La radio no responde</string>
+    <string name="audio_delay_title">Retraso de la radio</string>
+    <string name="audio_delay_help">La radio suele ir por delante de la imagen. Súbele el retraso hasta que el gol se oiga cuando se ve.</string>
+    <string name="audio_delay_value">%1$d s</string>
+    <string name="audio_minus_5">−5 s</string>
+    <string name="audio_minus_1">−1 s</string>
+    <string name="audio_plus_1">+1 s</string>
+    <string name="audio_plus_5">+5 s</string>
 </resources>
