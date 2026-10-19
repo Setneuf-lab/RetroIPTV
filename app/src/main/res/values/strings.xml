@@ -312,7 +312,9 @@
     <string name="audio_radio_on">📻  Radio: %1$s · retraso %2$d s (ajustar)</string>
     <string name="audio_radio_off">✕  Quitar la radio (volver al sonido del canal)</string>
     <string name="audio_radio_pick">Elige una radio</string>
-    <string name="audio_radio_none">No hay emisoras de radio en tu lista</string>
+    <string name="audio_radio_none">No se ha encontrado ninguna emisora</string>
+    <string name="audio_radio_search">Buscar emisora (COPE, SER, Onda Cero…)</string>
+    <string name="audio_radio_loading">Buscando emisoras…</string>
     <string name="audio_radio_starting">Radio: %1$s. Ajusta el retraso hasta que vaya a la par.</string>
     <string name="audio_radio_failed">La radio no responde</string>
     <string name="audio_delay_title">Retraso de la radio</string>

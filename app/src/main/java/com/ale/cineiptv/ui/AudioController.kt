@@ -27,6 +27,9 @@ import com.ale.cineiptv.util.ChannelName
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.util.Locale
+import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 
 /**
  * Audio del reproductor:
@@ -179,18 +182,78 @@ class AudioController(
         return RADIO_WORDS.any { Regex("""\b$it\b""").containsMatchIn(text) }
     }
 
+    /** Radios de la lista del proveedor que son de España. */
+    private fun providerSpanishRadios(): List<Channel> =
+        PlaylistRepository.live.filter { ch ->
+            isRadio(ch) && (com.ale.cineiptv.util.LangFilter.codeOf(ch.group) == "ES" ||
+                com.ale.cineiptv.util.LangFilter.codeOf(ch.name) == "ES")
+        }.distinctBy { it.url }
+
+    /** Selector con buscador: radios españolas de internet (COPE y SER primero) y las de la lista. */
     private fun pickRadio() {
-        val radios = PlaylistRepository.live.filter { isRadio(it) }.distinctBy { it.url }.take(400)
-        if (radios.isEmpty()) {
-            Toast.makeText(activity, R.string.audio_radio_none, Toast.LENGTH_LONG).show()
-            return
+        val density = activity.resources.displayMetrics.density
+        val pad = (16 * density).toInt()
+        val fromList = providerSpanishRadios()
+        var shown: List<Channel> = emptyList()
+
+        val search = android.widget.EditText(activity).apply {
+            setHint(R.string.audio_radio_search)
+            setSingleLine()
+            imeOptions = android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH
         }
-        val names = radios.map { ChannelName.split(it.name).first as CharSequence }.toTypedArray()
-        MaterialAlertDialogBuilder(activity)
+        val status = TextView(activity).apply {
+            textSize = 13f
+            setTextColor(activity.getColor(R.color.text_secondary))
+            setPadding(0, pad / 2, 0, pad / 2)
+        }
+        val adapter = android.widget.ArrayAdapter<String>(activity, android.R.layout.simple_list_item_1, ArrayList())
+        val list = android.widget.ListView(activity).apply {
+            this.adapter = adapter
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, (300 * density).toInt())
+        }
+        val box = LinearLayout(activity).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(pad, pad / 2, pad, 0)
+            addView(search)
+            addView(status)
+            addView(list)
+        }
+        val dialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.audio_radio_pick)
-            .setItems(names) { _, which -> startRadio(radios[which], prefs.radioDelaySec) }
+            .setView(box)
             .setNegativeButton(R.string.cancel, null)
             .show()
+
+        var job: kotlinx.coroutines.Job? = null
+        fun load(query: String) {
+            job?.cancel()
+            status.setText(R.string.audio_radio_loading)
+            job = activity.lifecycleScope.launch {
+                val internet = runCatching { com.ale.cineiptv.data.RadioDirectory.search(query) }.getOrDefault(emptyList())
+                val mine = fromList.filter { query.isBlank() || it.name.contains(query.trim(), ignoreCase = true) }
+                shown = (internet + mine).distinctBy { it.url }
+                adapter.clear()
+                adapter.addAll(shown.map { ChannelName.split(it.name).first })
+                if (shown.isEmpty()) status.setText(R.string.audio_radio_none) else status.text = ""
+                status.isVisible = shown.isEmpty() || status.text.isNotEmpty()
+            }
+        }
+        val debounce = Runnable { load(search.text.toString()) }
+        search.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) = Unit
+            override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) = Unit
+            override fun afterTextChanged(s: android.text.Editable?) {
+                handler.removeCallbacks(debounce)
+                handler.postDelayed(debounce, 600)
+            }
+        })
+        list.setOnItemClickListener { _, _, position, _ ->
+            shown.getOrNull(position)?.let { startRadio(it, prefs.radioDelaySec) }
+            dialog.dismiss()
+        }
+        dialog.setOnDismissListener { handler.removeCallbacks(debounce); job?.cancel() }
+        load("")
+        list.requestFocus()
     }
 
     private fun startRadio(ch: Channel, delay: Int) {
