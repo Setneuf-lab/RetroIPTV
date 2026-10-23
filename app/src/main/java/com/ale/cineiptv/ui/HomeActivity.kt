@@ -17,6 +17,7 @@ import kotlinx.coroutines.launch
 import com.ale.cineiptv.data.ParentalControl
 import com.ale.cineiptv.data.PlaylistRepository
 import com.ale.cineiptv.data.Prefs
+import com.ale.cineiptv.data.SmartDns
 import com.ale.cineiptv.databinding.ActivityHomeBinding
 import com.ale.cineiptv.util.AppRestarter
 import com.ale.cineiptv.util.Updater
@@ -48,6 +49,7 @@ class HomeActivity : AppCompatActivity() {
 
         b = ActivityHomeBinding.inflate(layoutInflater)
         setContentView(b.root)
+        b.textVersion.text = getString(R.string.version_fmt, com.ale.cineiptv.BuildConfig.VERSION_NAME)
 
         val prefs = Prefs(this)
         b.textDeviceId.text = getString(R.string.device_id_fmt, prefs.deviceId)
@@ -210,6 +212,7 @@ class HomeActivity : AppCompatActivity() {
                 "exo" -> R.string.engine_exo_short
                 else -> R.string.engine_auto_short
             })),
+            getString(R.string.settings_dns_fmt, dnsLabels()[SmartDns.MODES.indexOf(prefs.dnsMode).coerceAtLeast(0)].substringBefore(" (")),
         )
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.settings_title)
@@ -225,6 +228,7 @@ class HomeActivity : AppCompatActivity() {
                         ).show()
                     }
                     3 -> chooseEngine(prefs)
+                    4 -> chooseDns(prefs)
                     2 -> {
                         prefs.groupDuplicates = !prefs.groupDuplicates
                         Toast.makeText(
@@ -248,6 +252,24 @@ class HomeActivity : AppCompatActivity() {
             .setSingleChoiceItems(labels, modes.indexOf(prefs.engineMode).coerceAtLeast(0)) { d, which ->
                 prefs.engineMode = modes[which]
                 d.dismiss()
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    private fun dnsLabels() = arrayOf(
+        getString(R.string.dns_auto), getString(R.string.dns_system), getString(R.string.dns_cloudflare),
+        getString(R.string.dns_google), getString(R.string.dns_quad9),
+    )
+
+    /** DNS: el de la operadora o uno seguro (salta los bloqueos de servidores IPTV). */
+    private fun chooseDns(prefs: Prefs) {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.dns_title)
+            .setSingleChoiceItems(dnsLabels(), SmartDns.MODES.indexOf(prefs.dnsMode).coerceAtLeast(0)) { d, which ->
+                prefs.dnsMode = SmartDns.MODES[which]
+                d.dismiss()
+                Toast.makeText(this, R.string.dns_changed, Toast.LENGTH_LONG).show()
             }
             .setNegativeButton(R.string.cancel, null)
             .show()

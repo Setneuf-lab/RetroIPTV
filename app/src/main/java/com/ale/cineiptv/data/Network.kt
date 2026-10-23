@@ -16,6 +16,7 @@ object Network {
             .followRedirects(true)
             .followSslRedirects(true)
             .retryOnConnectionFailure(true)
+            .dns(SmartDns)   // salta los bloqueos de la operadora (Ajustes → DNS)
             .build()
     }
 

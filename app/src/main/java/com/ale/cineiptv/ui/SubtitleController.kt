@@ -156,7 +156,6 @@ class SubtitleController(
                 save(which)
                 applyStyle()
                 dialog.dismiss()
-                openMenu()
             }
             .setNegativeButton(R.string.cancel) { _, _ -> openMenu() }
             .show()
@@ -191,7 +190,12 @@ class SubtitleController(
                     p.trackSelectionParameters = builder.build()
                 }
                 dialog.dismiss()
-                openMenu()
+                // Se cierra todo y se vuelve a la película (antes se reabría el menú y parecía un error)
+                android.widget.Toast.makeText(
+                    activity,
+                    activity.getString(R.string.sub_track_set, labels[which]),
+                    android.widget.Toast.LENGTH_SHORT,
+                ).show()
             }
             .setNegativeButton(R.string.cancel) { _, _ -> openMenu() }
             .show()

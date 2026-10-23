@@ -150,6 +150,11 @@ class Prefs(context: Context) {
         get() = sp.getInt("radio_delay", 0)
         set(v) = sp.edit().putInt("radio_delay", v).apply()
 
+    /** DNS de la app: auto, system, cloudflare, google, quad9 (ver [SmartDns]). */
+    var dnsMode: String
+        get() = sp.getString("dns_mode", "auto") ?: "auto"
+        set(v) { sp.edit().putString("dns_mode", v).apply(); SmartDns.mode = v }
+
     var engineMode: String
         get() = sp.getString("engine_mode", "auto") ?: "auto"
         set(v) = sp.edit().putString("engine_mode", v).apply()

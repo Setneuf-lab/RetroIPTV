@@ -324,4 +324,16 @@
     <string name="audio_minus_1">−1 s</string>
     <string name="audio_plus_1">+1 s</string>
     <string name="audio_plus_5">+5 s</string>
+
+    <!-- DNS -->
+    <string name="settings_dns_fmt">DNS: %1$s</string>
+    <string name="dns_title">DNS (si la operadora bloquea el servidor)</string>
+    <string name="dns_auto">Automático (recomendado): el de la operadora y, si bloquea, uno seguro</string>
+    <string name="dns_system">De tu operadora</string>
+    <string name="dns_cloudflare">Cloudflare (1.1.1.1)</string>
+    <string name="dns_google">Google (8.8.8.8)</string>
+    <string name="dns_quad9">Quad9 (9.9.9.9)</string>
+    <string name="dns_changed">DNS cambiado. Se aplica a las próximas conexiones; si algo seguía fallando, vuelve a cargar la lista.</string>
+    <string name="version_fmt">Versión %1$s</string>
+    <string name="sub_track_set">Subtítulos: %1$s</string>
 </resources>

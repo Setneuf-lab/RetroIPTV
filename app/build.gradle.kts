@@ -98,6 +98,7 @@ dependencies {
 
     // Red + corrutinas
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okhttp3:okhttp-dnsoverhttps:4.12.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
 
     // Reproductor Media3 (ExoPlayer) con soporte HLS (1.6.1: correcciones de estabilidad)
