@@ -1,3 +1,7 @@
+# Cada vez que subes cambios de la app, GitHub:
+#  1. compila la APK firmada con tu llave (guardada en Secrets)
+#  2. la publica como nueva versión en "Releases"
+# Las teles la detectan al abrir Retro IPTV y ofrecen actualizar.
 name: Publicar nueva versión
 
 on:
@@ -6,6 +10,7 @@ on:
     paths-ignore:
       - "panel/**"
       - "README.md"
+      - "CLAUDE.md"
   workflow_dispatch:
 
 permissions:
@@ -34,7 +39,7 @@ jobs:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
           if [ -z "$KEYSTORE_BASE64" ]; then
-            echo "::error::Falta el secret KEYSTORE_BASE64"
+            echo "::error::Falta el secret KEYSTORE_BASE64 (la llave de firma). Mira el README."
             exit 1
           fi
           echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
