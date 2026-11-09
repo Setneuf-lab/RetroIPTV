@@ -55,6 +55,5 @@ App Android / Android TV de IPTV para uso familiar. Las listas se gestionan desd
 - AFR desactivado por defecto (congelaba imagen en algunos sticks).
 - No añadir funciones para saltarse bloqueos judiciales de LaLiga (VPN integrada, etc.).
 - iOS aparcado. Descargas offline: propuestas, no hechas.
-- Pendiente cuando toque: actualización automática sin preguntar (Android 12+ con PackageInstaller
-  `USER_ACTION_NOT_REQUIRED`; en Android ≤11 descargar en segundo plano y pedir solo "Instalar"),
-  y aviso claro cuando el servidor no responde en varios canales seguidos (dejar de reintentar).
+- Actualización sin preguntar (`Updater`): descarga al abrir e instala solo con `HomeActivity` delante.
+- En directo no hay reintentos sin fin: reinicio → otra calidad (`playQualities`) → aviso "servidor caído" (`ServerHealth`).

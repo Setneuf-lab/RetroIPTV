@@ -38,6 +38,8 @@ import com.ale.cineiptv.data.ShowRef
 import com.ale.cineiptv.data.WatchHistory
 import com.ale.cineiptv.data.PlayLog
 import com.ale.cineiptv.data.ParentalControl
+import com.ale.cineiptv.util.ChannelName
+import com.ale.cineiptv.util.DeviceCaps
 import androidx.media3.common.Format
 import android.content.ActivityNotFoundException
 import android.net.Uri
@@ -63,7 +65,6 @@ class PlayerActivity : AppCompatActivity() {
     private var queue: List<Channel> = emptyList()
     private var index = 0
     private var isLive = false
-    private var autoRetries = 0
     private lateinit var subtitles: SubtitleController
     /** Serie de los episodios (para "Seguir viendo"). */
     private var show: ShowRef? = null
@@ -72,8 +73,7 @@ class PlayerActivity : AppCompatActivity() {
 
     private val handler = Handler(Looper.getMainLooper())
     private val hideInfo = Runnable { b.panelInfo.isVisible = false }
-    private val retryRunnable = Runnable { play(index) }
-    /** Canal en directo que no llega a arrancar: reconectar (2 veces) y si no, avisar. */
+    /** Canal en directo que no llega a arrancar: se prueba la siguiente forma de pedirlo. */
     private val startWatchdog = Runnable {
         if (usingVlc) return@Runnable
         val p = player ?: return@Runnable
@@ -83,16 +83,8 @@ class PlayerActivity : AppCompatActivity() {
         PlayLog.event("start_timeout", queue.getOrNull(index), mapOf(
             "s" to StreamTuning.LIVE_START_WATCHDOG_MS / 1000, "fmt" to variants.getOrNull(variant)?.let { describe(it) },
         ))
-        if (!startedOk && tryNextVariant()) return@Runnable
-        if (!startedOk && prefs.engineMode != "exo") { switchToVlc(auto = true); return@Runnable }
-        if (startAttempts < 2) {
-            startAttempts++
-            play(index)
-        } else {
-            failOrUseVlc(getString(R.string.player_err_start), offerExternal = true)
-        }
+        advanceLiveStart()
     }
-    private var startAttempts = 0
 
     // ---------------------------------------------------------------- Motor VLC
 
@@ -121,7 +113,6 @@ class PlayerActivity : AppCompatActivity() {
         forceVlcFor = ch.url
         vlcResumeAt = if (isLive) 0L else currentPositionMs().takeIf { it > 0 } ?: savedPositionOf(ch)
         Toast.makeText(this, R.string.engine_switching, Toast.LENGTH_SHORT).show()
-        autoRetries = 0
         play(index)
     }
 
@@ -163,8 +154,7 @@ class PlayerActivity : AppCompatActivity() {
     private val vlcWatchdog = Runnable {
         if (!usingVlc || vlcStarted) return@Runnable
         PlayLog.event("start_timeout", queue.getOrNull(index), mapOf("s" to VLC_START_WATCHDOG_MS / 1000, "fmt" to "VLC"))
-        if (isLive && autoRetries < 2) { autoRetries++; play(index) }
-        else showError(getString(R.string.player_err_start))
+        if (isLive) failVlcStart() else showError(getString(R.string.player_err_start))
     }
 
     private val vlcListener = object : VlcEngine.Listener {
@@ -180,27 +170,29 @@ class PlayerActivity : AppCompatActivity() {
                 ))
                 // Funciona con VLC: la próxima vez este canal empieza directamente con VLC
                 queue.getOrNull(index)?.let { if (prefs.engineMode == "auto") prefs.markVlcChannel(it.url) }
-                autoRetries = 0
+                onLiveStarted()
             }
         }
 
         override fun onVlcBuffering(percent: Float) = Unit
 
         override fun onVlcError() {
-            if (!usingVlc) return
+            if (!usingVlc || staleVlcEvent()) return
             lastErrorDetail = "VLC"
             PlayLog.event("error", queue.getOrNull(index), mapOf("detail" to "VLC", "live" to isLive, "started" to vlcStarted))
-            if (isLive && autoRetries < MAX_AUTO_RETRIES) {
-                autoRetries++
-                handler.postDelayed(retryRunnable, minOf(1_000L * autoRetries, 4_000L))
-            } else {
-                showError(getString(R.string.player_err_generic, "VLC"))
+            when {
+                !isLive -> showError(getString(R.string.player_err_generic, "VLC"))
+                vlcStarted -> recoverLive("error")
+                else -> failVlcStart()
             }
         }
 
         override fun onVlcEnded() {
-            if (!usingVlc) return
-            if (isLive) { play(index); return }       // el directo se cortó → reconectar
+            if (!usingVlc || staleVlcEvent()) return
+            if (isLive) {
+                if (vlcStarted) recoverLive("fin") else failVlcStart()
+                return
+            }
             queue.getOrNull(index)?.let { prefs.clearPosition(it.url); WatchHistory.remove(it.url) }
             offerNextEpisode()
         }
@@ -259,7 +251,6 @@ class PlayerActivity : AppCompatActivity() {
         PlayLog.event("variant", queue.getOrNull(index), mapOf(
             "from" to describe(from), "to" to describe(to), "detail" to lastErrorDetail,
         ))
-        handler.removeCallbacks(retryRunnable)
         play(index)
         return true
     }
@@ -279,7 +270,10 @@ class PlayerActivity : AppCompatActivity() {
         index = (savedInstanceState?.getInt(STATE_INDEX) ?: intent.getIntExtra(EXTRA_INDEX, 0))
             .coerceIn(0, queue.lastIndex)
 
-        b.btnRetry.setOnClickListener { autoRetries = 0; startAttempts = 0; variantsFor = null; play(index) }
+        b.btnRetry.setOnClickListener { resetLiveRecovery(); variantsFor = null; play(index) }
+        b.btnOtherChannel.setOnClickListener {
+            if (queue.size > 1) { b.panelError.isVisible = false; showChannels() } else finish()
+        }
         b.btnExternal.setOnClickListener { switchToVlc(auto = false) }
         b.btnNextNow.setOnClickListener { playNextEpisode() }
         b.btnNextCancel.setOnClickListener { cancelNextEpisode() }
@@ -331,7 +325,7 @@ class PlayerActivity : AppCompatActivity() {
         channelAdapter = ItemAdapter(
             onClick = { pos ->
                 hideChannels()
-                if (pos != index) { autoRetries = 0; play(pos) }
+                if (pos != index) play(pos)
             },
             onLongClick = { pos ->
                 val nowFav = Favorites.toggle(queue[pos])
@@ -382,7 +376,12 @@ class PlayerActivity : AppCompatActivity() {
     private fun hideChannels() {
         b.panelChannels.isVisible = false
         closePanelOnBack.isEnabled = false
-        b.playerView.requestFocus()
+        if (serverDownShown) {
+            b.panelError.isVisible = true
+            b.btnRetry.requestFocus()
+        } else {
+            b.playerView.requestFocus()
+        }
     }
 
     override fun onStart() {
@@ -438,9 +437,9 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun releasePlayer() {
-        handler.removeCallbacks(retryRunnable)
         handler.removeCallbacks(periodicSave)
         handler.removeCallbacks(startWatchdog)
+        handler.removeCallbacks(stallWatchdog)
         handler.removeCallbacks(frozenCheck)
         cancelSeek()
         player?.let {
@@ -458,17 +457,18 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun play(i: Int) {
         val p = player ?: return
-        handler.removeCallbacks(retryRunnable)
+        handler.removeCallbacks(stallWatchdog)
         val newIndex = i.coerceIn(0, queue.lastIndex)
         if (newIndex != index) {
             subtitles.resetDelay()   // la sincronización es de cada vídeo
-            startAttempts = 0
             if (isLive) previousChannel = queue.getOrNull(index)
             audio.stopRadio()   // la radio era para el canal que se estaba viendo
         }
         cancelNextEpisode()
         index = newIndex
         val ch = queue[index]
+        if (ch.url != recoveryUrl) resetLiveRecovery()
+        serverDownShown = false
         PlaylistRepository.lastPlayed = ch
         // Subtítulos según las preferencias (idioma elegido la última vez, o desactivados)
         p.trackSelectionParameters = audio.initialParameters(subtitles.initialParameters(p.trackSelectionParameters))
@@ -558,9 +558,9 @@ class PlayerActivity : AppCompatActivity() {
     private var frozenRecoveries = 0
 
     /**
-     * Vigila que la imagen avance: si el audio sigue pero no se pinta ningún fotograma nuevo
-     * (decodificador de vídeo atascado), se reconecta. Si vuelve a pasar, se avisa y se
-     * ofrece abrirlo en VLC.
+     * Vigila que la imagen avance. En directo, si no se pinta ningún fotograma nuevo (con o sin
+     * audio) se recupera con [recoverLive]. En películas, si el audio sigue pero la imagen no
+     * (decodificador atascado), se reconecta y, si vuelve a pasar, se ofrece abrirlo en VLC.
      */
     private val frozenCheck: Runnable = object : Runnable {
         override fun run() {
@@ -573,20 +573,21 @@ class PlayerActivity : AppCompatActivity() {
             val frames = counters.renderedOutputBufferCount
             val pos = p.currentPosition
             val advanced = pos - lastCheckPosition
-            val stuck = lastRenderedFrames >= 0 && frames == lastRenderedFrames && advanced > FROZEN_CHECK_MS / 2
+            val stuck = lastRenderedFrames >= 0 && frames == lastRenderedFrames &&
+                (isLive || advanced > FROZEN_CHECK_MS / 2)
             lastRenderedFrames = frames
             lastCheckPosition = pos
             if (!stuck) return
             PlayLog.event("frozen", queue.getOrNull(index), mapOf(
                 "fmt" to variants.getOrNull(variant)?.let { describe(it) }, "attempt" to frozenRecoveries + 1,
             ))
+            if (isLive) { recoverLive("congelada"); return }
             if (frozenRecoveries < 2) {
                 frozenRecoveries++
-                val keep = if (isLive) C.TIME_UNSET else pos
                 val recoveries = frozenRecoveries
                 play(index)
                 frozenRecoveries = recoveries
-                if (keep != C.TIME_UNSET) player?.seekTo(keep)
+                player?.seekTo(pos)
             } else {
                 // Otra forma de pedir el canal (p. ej. .m3u8 en vez de .ts) puede decodificarse bien
                 if (tryNextVariant()) return
@@ -626,14 +627,21 @@ class PlayerActivity : AppCompatActivity() {
                     bufferingSince = 0L
                     variantsFor?.let { StreamVariants.remember(it, variant) }
                     startedOk = true
-                    autoRetries = 0
-                    startAttempts = 0
+                    onLiveStarted()
                     handler.removeCallbacks(startWatchdog)
+                    handler.removeCallbacks(stallWatchdog)
                 }
-                Player.STATE_BUFFERING -> if (startedOk && bufferingSince == 0L) bufferingSince = SystemClock.elapsedRealtime()
+                Player.STATE_BUFFERING -> if (startedOk && !restartPending && bufferingSince == 0L) {
+                    bufferingSince = SystemClock.elapsedRealtime()
+                    if (isLive) {
+                        handler.removeCallbacks(stallWatchdog)
+                        handler.postDelayed(stallWatchdog, LIVE_STALL_RESTART_MS)
+                    }
+                }
                 Player.STATE_ENDED -> {
-                    if (isLive) play(index)               // stream cortado → reconectar
-                    else {
+                    if (isLive) {
+                        if (startedOk) recoverLive("fin") else advanceLiveStart()
+                    } else {
                         prefs.clearPosition(queue[index].url)
                         WatchHistory.remove(queue[index].url)
                         offerNextEpisode()
@@ -654,19 +662,161 @@ class PlayerActivity : AppCompatActivity() {
             PlayLog.event("error", queue.getOrNull(index), mapOf(
                 "detail" to lastErrorDetail, "live" to isLive, "started" to startedOk,
             ))
+            if (isLive) {
+                when {
+                    startedOk && !restartPending && isDecodingError(error) && !usingVlc && prefs.engineMode != "exo" ->
+                        switchToVlc(auto = true)
+                    startedOk -> recoverLive("error")
+                    else -> advanceLiveStart()
+                }
+                return
+            }
             // Primero, otra forma de pedir el canal (otro formato u otro User-Agent)
             if (!startedOk && tryNextVariant()) return
             // No llegó a arrancar con ninguna variante, o el aparato no puede decodificarlo: VLC
             if ((!startedOk || isDecodingError(error)) && !usingVlc && prefs.engineMode != "exo") {
                 switchToVlc(auto = true); return
             }
-            if (isLive && autoRetries < MAX_AUTO_RETRIES) {
-                autoRetries++
-                handler.postDelayed(retryRunnable, minOf(1_000L * autoRetries, 4_000L))
-                return
-            }
             failOrUseVlc(errorMessage(error), offerExternal = true)
         }
+    }
+
+    // ---------------------------------------------------------------- Directo: recuperar o dejar de insistir
+
+    /** Se ha reiniciado el canal y aún no ha vuelto a arrancar. */
+    private var restartPending = false
+    /** Se ha cambiado de calidad y esa calidad aún no ha arrancado. */
+    private var qualityFallback = false
+    private var lastRestartUrl: String? = null
+    private var lastRestartAt = 0L
+    private var lastRecoveryAt = 0L
+    /** Canal al que pertenece la recuperación en curso (si se cambia a otro, se olvida). */
+    private var recoveryUrl: String? = null
+    private val qualitiesTried = HashSet<String>()
+    /** Calidad con la que se abrió el canal (se recupera si fallan todas). */
+    private var qualityOriginal: Channel? = null
+    private var serverDownShown = false
+
+    private fun resetLiveRecovery() {
+        restartPending = false
+        qualityFallback = false
+        lastRestartUrl = null
+        recoveryUrl = null
+        qualitiesTried.clear()
+        qualityOriginal = null
+    }
+
+    private fun onLiveStarted() {
+        restartPending = false
+        qualityFallback = false
+        ServerHealth.clear()
+    }
+
+    /** Falló un arranque durante una recuperación o con el servidor ya dado por caído. */
+    private fun handleLiveFailure(): Boolean {
+        if (restartPending || qualityFallback) { recoverLive("no_arranca"); return true }
+        if (ServerHealth.isDown()) { showServerDown(); return true }
+        return false
+    }
+
+    /** Un intento de arrancar el directo ha fallado: la siguiente forma de pedirlo o, si no quedan, el aviso. */
+    private fun advanceLiveStart() {
+        if (handleLiveFailure()) return
+        if (!startedOk && tryNextVariant()) return
+        if (!startedOk && prefs.engineMode != "exo") { switchToVlc(auto = true); return }
+        if (startedOk) recoverLive("no_arranca") else showServerDown()
+    }
+
+    private fun failVlcStart() {
+        if (!handleLiveFailure()) showServerDown()
+    }
+
+    /** VLC puede avisar del final del vídeo anterior justo al empezar el nuevo. */
+    private fun staleVlcEvent() = isLive && SystemClock.elapsedRealtime() - playStartedAt < VLC_STALE_EVENT_MS
+
+    /** Se quedó cargando demasiado mientras se veía el directo. */
+    private val stallWatchdog = Runnable {
+        val p = player ?: return@Runnable
+        if (!isLive || usingVlc || !startedOk || !p.playWhenReady) return@Runnable
+        if (p.playbackState == Player.STATE_BUFFERING && !b.panelError.isVisible) recoverLive("cargando")
+    }
+
+    /** Directo atascado: primero se reinicia el canal; si repite, otra calidad; si no quedan, el aviso. */
+    private fun recoverLive(reason: String) {
+        val ch = queue.getOrNull(index) ?: return
+        val now = SystemClock.elapsedRealtime()
+        if (now - lastRecoveryAt > LIVE_RECOVERY_RESET_MS) {
+            qualitiesTried.clear()
+            qualityOriginal = null
+        }
+        lastRecoveryAt = now
+        val restartedRecently = lastRestartUrl == ch.url && now - lastRestartAt < LIVE_REFREEZE_WINDOW_MS
+        if (!qualityFallback && !restartedRecently) {
+            lastRestartUrl = ch.url
+            lastRestartAt = now
+            restartPending = true
+            recoveryUrl = ch.url
+            PlayLog.event("live_restart", ch, mapOf(
+                "reason" to reason, "fmt" to variants.getOrNull(variant)?.let { describe(it) },
+            ))
+            play(index)
+            return
+        }
+        if (!tryOtherQuality(reason)) showServerDown()
+    }
+
+    private fun qualityLabelOf(ch: Channel) = ChannelName.split(ch.name).second ?: getString(R.string.quality_normal)
+
+    /** Cambia a otra calidad de la misma cadena: primero las inferiores, de mayor a menor. */
+    private fun tryOtherQuality(reason: String): Boolean {
+        val current = queue.getOrNull(index) ?: return false
+        val group = PlaylistRepository.playQualities[current.url] ?: return false
+        qualitiesTried.add(current.url)
+        val currentRank = ChannelName.qualityOrder(current.name)
+        val candidates = group
+            .filter { it.url !in qualitiesTried && !(DeviceCaps.is4K(it.name) && !DeviceCaps.supports4K) }
+            .sortedByDescending { ChannelName.qualityOrder(it.name) }
+        val next = candidates.firstOrNull { ChannelName.qualityOrder(it.name) <= currentRank }
+            ?: candidates.firstOrNull()
+            ?: return false
+        PlayLog.event("quality_change", next, mapOf(
+            "from" to qualityLabelOf(current), "to" to qualityLabelOf(next), "reason" to reason,
+        ))
+        Toast.makeText(this, getString(R.string.player_quality_fallback, qualityLabelOf(next)), Toast.LENGTH_SHORT).show()
+        if (qualityOriginal == null) qualityOriginal = current
+        restartPending = false
+        qualityFallback = true
+        recoveryUrl = next.url
+        replaceCurrentChannel(next)
+        play(index)
+        return true
+    }
+
+    private fun replaceCurrentChannel(ch: Channel) {
+        queue = queue.toMutableList().also { it[index] = ch }
+        PlaylistRepository.playQueue = queue
+    }
+
+    /** Se deja de pedir el canal y se avisa: seguir insistiendo solo gasta conexiones de la cuenta. */
+    private fun showServerDown() {
+        qualityOriginal?.let { replaceCurrentChannel(it) }
+        resetLiveRecovery()
+        handler.removeCallbacks(startWatchdog)
+        handler.removeCallbacks(stallWatchdog)
+        handler.removeCallbacks(frozenCheck)
+        leaveVlc()
+        player?.stop()
+        forceVlcFor = null
+        val ch = queue.getOrNull(index)
+        val alreadyDown = ServerHealth.isDown()
+        ch?.let { ServerHealth.record(it.url) }
+        PlayLog.event("server_down", ch, mapOf("fast" to alreadyDown, "detail" to lastErrorDetail))
+        serverDownShown = true
+        b.textError.setText(R.string.player_err_server_down)
+        b.panelError.isVisible = true
+        b.btnExternal.isVisible = false
+        b.btnOtherChannel.isVisible = true
+        if (!b.panelChannels.isVisible) b.btnRetry.requestFocus()
     }
 
     // ---------------------------------------------------------------- Ajuste de fotogramas (AFR)
@@ -765,7 +915,7 @@ class PlayerActivity : AppCompatActivity() {
     /** Va al canal con ese número: primero en la lista abierta, si no, en todos los canales. */
     private fun zapToNumber(n: Int) {
         val inQueue = queue.indexOfFirst { PlaylistRepository.numberOf(it) == n }
-        if (inQueue >= 0) { autoRetries = 0; play(inQueue); return }
+        if (inQueue >= 0) { play(inQueue); return }
         val all = PlaylistRepository.live
         val inAll = all.indexOfFirst { PlaylistRepository.numberOf(it) == n && !ParentalControl.isLocked(it.group) }
         if (inAll >= 0) {
@@ -773,7 +923,6 @@ class PlayerActivity : AppCompatActivity() {
             queue = all
             PlaylistRepository.playQueue = all
             index = inAll
-            autoRetries = 0
             play(inAll)
             return
         }
@@ -792,7 +941,6 @@ class PlayerActivity : AppCompatActivity() {
             PlaylistRepository.playQueue = queue
             index = -1
         }
-        autoRetries = 0
         play(i)
         previousChannel = current      // así se puede ir y volver entre dos canales
         b.textInfoName.text = getString(R.string.zap_previous) + "  ·  " + prev.name
@@ -838,6 +986,7 @@ class PlayerActivity : AppCompatActivity() {
         b.textError.text = if (lastErrorDetail.isEmpty()) msg else "$msg\n\n" + getString(R.string.player_err_detail, lastErrorDetail)
         b.panelError.isVisible = true
         b.btnExternal.isVisible = offerExternal
+        b.btnOtherChannel.isVisible = false
         if (offerExternal) b.btnExternal.requestFocus() else b.btnRetry.requestFocus()
     }
 
@@ -1016,7 +1165,6 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun zap(delta: Int) {
         if (queue.size < 2) return
-        autoRetries = 0
         val next = (index + delta + queue.size) % queue.size
         play(next)
     }
@@ -1038,8 +1186,13 @@ class PlayerActivity : AppCompatActivity() {
         private const val EXTRA_INDEX = "extra_index"
         private const val EXTRA_LIVE = "extra_live"
         private const val STATE_INDEX = "state_index"
-        /** Reconexiones completas en directo si los reintentos silenciosos no bastan. */
-        private const val MAX_AUTO_RETRIES = 8
+        /** Tiempo cargando en mitad de un directo antes de reiniciarlo. */
+        private const val LIVE_STALL_RESTART_MS = 10_000L
+        /** Si vuelve a atascarse antes de este tiempo tras reiniciar, se cambia de calidad. */
+        private const val LIVE_REFREEZE_WINDOW_MS = 60_000L
+        /** Tras este tiempo sin problemas se pueden volver a probar todas las calidades. */
+        private const val LIVE_RECOVERY_RESET_MS = 5 * 60_000L
+        private const val VLC_STALE_EVENT_MS = 500L
         private const val EXTRA_RESUME = "extra_resume"
         private const val VLC_PACKAGE = "org.videolan.vlc"
         /** Salto mínimo al avanzar/retroceder. */

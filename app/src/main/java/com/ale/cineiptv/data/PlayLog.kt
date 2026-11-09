@@ -41,7 +41,8 @@ object PlayLog {
     }
 
     /**
-     * Apunta un suceso. [type]: start_ok, start_timeout, error, variant, stall, frozen.
+     * Apunta un suceso. [type]: start_ok, start_timeout, error, variant, stall, frozen,
+     * live_restart, quality_change, server_down.
      * [extra]: datos del suceso (ms, http, formato…).
      */
     fun event(type: String, ch: Channel?, extra: Map<String, Any?> = emptyMap()) {

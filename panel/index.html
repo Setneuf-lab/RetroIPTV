@@ -92,8 +92,8 @@
   .logs th { text-align: left; color: var(--muted); font-weight: 600; padding: 6px 8px; border-bottom: 1px solid var(--line); }
   .logs td { padding: 6px 8px; border-bottom: 1px solid rgba(61,53,48,.5); vertical-align: top; }
   .logs td.when { white-space: nowrap; color: var(--text-2); }
-  .logs .t-error, .logs .t-start_timeout, .logs .t-frozen { color: var(--error); }
-  .logs .t-stall, .logs .t-variant, .logs .t-engine_vlc { color: var(--amber-2); }
+  .logs .t-error, .logs .t-start_timeout, .logs .t-frozen, .logs .t-server_down { color: var(--error); }
+  .logs .t-stall, .logs .t-variant, .logs .t-engine_vlc, .logs .t-live_restart, .logs .t-quality_change { color: var(--amber-2); }
   .logs .t-start_ok { color: var(--ok); }
   .logwrap { max-height: 420px; overflow: auto; border: 1px solid var(--line); border-radius: 12px; margin-top: 8px; }
   @media (max-width: 560px) {
@@ -465,7 +465,8 @@ let logMeta = {};
 const TYPE_LABEL = {
   start_ok: "Arranque", start_timeout: "No arranca", error: "Error",
   variant: "Cambio de formato", stall: "Corte (cargando)", frozen: "Imagen congelada",
-  engine_vlc: "Cambio a VLC",
+  engine_vlc: "Cambio a VLC", server_down: "Servidor caído",
+  live_restart: "Reinicio del directo", quality_change: "Cambio de calidad",
 };
 const fmtDate = t => new Date(t).toLocaleString("es-ES", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" });
 const secs = ms => (ms / 1000).toLocaleString("es-ES", { maximumFractionDigits: 1 }) + " s";
@@ -479,6 +480,9 @@ function eventDetail(e) {
     case "frozen": return `intento ${e.attempt || 1} · ${e.fmt || ""}`;
     case "engine_vlc": return `${e.auto ? "automático" : "manual"}${e.detail ? " (" + e.detail + ")" : ""}`;
     case "error": return `${e.detail || ""}${e.started ? " · ya se estaba viendo" : ""}`;
+    case "server_down": return `${e.fast ? "aviso directo" : "agotó los intentos"}${e.detail ? " (" + e.detail + ")" : ""}`;
+    case "live_restart": return `${e.reason || ""} · ${e.fmt || ""}`;
+    case "quality_change": return `${e.from || ""} → ${e.to || ""} (${e.reason || ""})`;
     default: return "";
   }
 }

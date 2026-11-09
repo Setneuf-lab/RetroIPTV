@@ -152,6 +152,13 @@ class ContentActivity : AppCompatActivity() {
         return FilterResult(entries, channels, items)
     }
 
+    /** Pasa al reproductor las calidades de los canales agrupados (como la cola de reproducción). */
+    private fun publishQualities() {
+        val map = HashMap<String, List<Channel>>()
+        visibleEntries.filterIsInstance<ChannelGroup>().forEach { g -> g.variants.forEach { map[it.url] = g.variants } }
+        PlaylistRepository.playQualities = map
+    }
+
     /** Elegir calidad de un canal agrupado (la elegida se recuerda). */
     private fun chooseQuality(g: ChannelGroup) {
         val labels = g.variants.map { v ->
@@ -170,6 +177,7 @@ class ContentActivity : AppCompatActivity() {
                 if (qi >= 0) queue[qi] = v
                 visibleChannels = queue
                 PlaylistRepository.playQueue = queue
+                publishQualities()
                 PlaylistRepository.playShow = null
                 PlayerActivity.start(this, if (qi >= 0) qi else 0, isLive = true)
                 if (slot >= 0) itemAdapter.itemAt(slot)?.let { itemAdapter.updateItem(slot, it.copy(logo = v.logo, number = PlaylistRepository.numberOf(v))) }
@@ -811,6 +819,7 @@ class ContentActivity : AppCompatActivity() {
                     return
                 }
                 PlaylistRepository.playQueue = visibleChannels
+                publishQualities()
                 PlaylistRepository.playShow = openShow?.let { ShowRef(it.name, it.logo) }
                 PlayerActivity.start(this, index, isLive = entry.type == ContentType.LIVE)
             }

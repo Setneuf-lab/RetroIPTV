@@ -1,51 +1,120 @@
 package com.ale.cineiptv.util
 
 import android.app.Activity
+import android.app.PendingIntent
 import android.content.ActivityNotFoundException
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentSender
+import android.content.pm.PackageInstaller
 import android.net.Uri
+import android.os.Build
+import android.os.SystemClock
 import android.provider.Settings
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
+import androidx.annotation.RequiresApi
 import androidx.core.content.FileProvider
-import kotlinx.coroutines.CoroutineScope
+import androidx.core.content.pm.PackageInfoCompat
 import com.ale.cineiptv.BuildConfig
 import com.ale.cineiptv.R
 import com.ale.cineiptv.data.Network
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.isActive
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.Request
 import org.json.JSONObject
 import java.io.File
+import java.lang.ref.WeakReference
 
 /**
- * Actualización automática desde GitHub Releases.
- * Al abrir la app mira la última versión publicada; si es más nueva, ofrece
- * descargarla e instalarla (Android siempre pide confirmar la instalación).
+ * Actualización automática desde GitHub Releases, sin preguntar:
+ *  - La APK se descarga en segundo plano al abrir la app.
+ *  - Solo se instala con la pantalla de inicio delante (nunca durante la reproducción):
+ *    si la descarga acaba mientras se ve algo, espera a que se vuelva al inicio.
+ *  - Android 12+: instalación silenciosa (la primera vez Android pide confirmar).
+ *  - Android 11 o menos: solo aparece el diálogo "Instalar" del sistema.
+ *  - Si algo falla no se avisa: se reintenta la próxima vez que se abra la app.
  */
 object Updater {
 
-    class Release(val versionCode: Int, val versionName: String, val apkUrl: String)
+    private class Release(val versionCode: Int, val apkUrl: String)
 
-    /** Solo se comprueba una vez por sesión. */
-    private var checked = false
+    /** Dentro de una misma ejecución de la app, no reintentar antes de este tiempo. */
+    private const val RETRY_AFTER_MS = 60 * 60 * 1000L
 
-    fun checkOnStart(activity: Activity, scope: CoroutineScope) {
-        if (checked) return
-        checked = true
-        scope.launch {
-            val rel = withContext(Dispatchers.IO) { runCatching { fetchLatest() }.getOrNull() } ?: return@launch
-            if (rel.versionCode <= BuildConfig.VERSION_CODE || activity.isFinishing) return@launch
-            MaterialAlertDialogBuilder(activity)
-                .setTitle(R.string.update_title)
-                .setMessage(activity.getString(R.string.update_msg, rel.versionName, BuildConfig.VERSION_NAME))
-                .setPositiveButton(R.string.update_now) { _, _ -> download(activity, scope, rel) }
-                .setNegativeButton(R.string.update_later, null)
-                .show()
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+
+    private var busy = false
+    private var lastCheckAt = 0L
+    private var lastInstallAt = 0L
+    private var readyApk: File? = null
+    private var waitingPermission = false
+    /** Confirmación pedida por Android cuando el inicio no estaba delante. */
+    private var pendingConfirm: Intent? = null
+    private var home: WeakReference<Activity>? = null
+
+    private fun resumedHome(): Activity? = home?.get()?.takeUnless { it.isFinishing || it.isDestroyed }
+
+    private fun due(last: Long) = last == 0L || SystemClock.elapsedRealtime() - last >= RETRY_AFTER_MS
+
+    /** Llamar en onResume de la pantalla de inicio. */
+    fun onHomeResumed(activity: Activity) {
+        home = WeakReference(activity)
+        pendingConfirm?.let {
+            pendingConfirm = null
+            showConfirm(activity, it)
+            return
         }
+        val apk = readyApk?.takeIf { it.exists() }
+        if (waitingPermission) {
+            waitingPermission = false
+            if (apk != null && activity.packageManager.canRequestPackageInstalls()) {
+                startInstall(activity, apk)
+                return
+            }
+        }
+        if (busy) return
+        if (apk != null) {
+            if (due(lastInstallAt)) install(activity, apk)
+            return
+        }
+        if (due(lastCheckAt)) checkAndDownload(activity)
+    }
+
+    /** Llamar en onPause de la pantalla de inicio. */
+    fun onHomePaused() {
+        home = null
+    }
+
+    private fun checkAndDownload(activity: Activity) {
+        val ctx = activity.applicationContext
+        busy = true
+        lastCheckAt = SystemClock.elapsedRealtime()
+        scope.launch {
+            val apk = withContext(Dispatchers.IO) { runCatching { prepareUpdate(ctx) }.getOrNull() }
+            busy = false
+            readyApk = apk
+            if (apk != null) resumedHome()?.let { install(it, apk) }
+        }
+    }
+
+    /** Devuelve la APK lista para instalar, o null si no hay versión nueva. */
+    private fun prepareUpdate(ctx: Context): File? {
+        val rel = fetchLatest() ?: return null
+        val dir = File(ctx.cacheDir, "updates").apply { mkdirs() }
+        val name = "RetroIPTV-${rel.versionCode}.apk"
+        dir.listFiles()?.forEach { if (it.name != name) it.delete() }
+        if (rel.versionCode <= BuildConfig.VERSION_CODE) return null
+        val apk = File(dir, name)
+        if (isUsable(ctx, apk)) return apk
+        download(rel.apkUrl, apk)
+        if (isUsable(ctx, apk)) return apk
+        apk.delete()
+        return null
     }
 
     /** Lee la última versión de GitHub (etiqueta "build-<versionCode>"). */
@@ -63,102 +132,154 @@ object Updater {
             val assets = json.optJSONArray("assets") ?: return null
             for (i in 0 until assets.length()) {
                 val a = assets.optJSONObject(i) ?: continue
-                if (a.optString("name").endsWith(".apk")) {
-                    val name = json.optString("name").removePrefix("Retro IPTV ").ifBlank { code.toString() }
-                    return Release(code, name, a.optString("browser_download_url"))
-                }
+                if (a.optString("name").endsWith(".apk")) return Release(code, a.optString("browser_download_url"))
             }
         }
         return null
     }
 
-    private fun download(activity: Activity, scope: CoroutineScope, rel: Release) {
-        val progress: AlertDialog = MaterialAlertDialogBuilder(activity)
-            .setTitle(R.string.update_downloading)
-            .setMessage("0 %")
-            .setCancelable(false)
-            .show()
-
-        scope.launch {
-            val file = File(activity.cacheDir, "updates/RetroIPTV.apk")
-            val ok = withContext(Dispatchers.IO) {
-                runCatching {
-                    file.parentFile?.mkdirs()
-                    val req = Request.Builder().url(rel.apkUrl).build()
-                    Network.client.newCall(req).execute().use { resp ->
-                        if (!resp.isSuccessful) error("HTTP ${resp.code}")
-                        val body = resp.body ?: error("vacío")
-                        val total = body.contentLength()
-                        var done = 0L
-                        var lastPct = -1
-                        body.byteStream().use { input ->
-                            file.outputStream().use { out ->
-                                val buf = ByteArray(64 * 1024)
-                                while (isActive) {
-                                    val n = input.read(buf)
-                                    if (n < 0) break
-                                    out.write(buf, 0, n)
-                                    done += n
-                                    if (total > 0) {
-                                        val pct = (done * 100 / total).toInt()
-                                        if (pct != lastPct) {
-                                            lastPct = pct
-                                            withContext(Dispatchers.Main) { progress.setMessage("$pct %") }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    true
-                }.getOrDefault(false)
-            }
-            progress.dismiss()
-            if (!ok) {
-                Toast.makeText(activity, R.string.update_failed, Toast.LENGTH_LONG).show()
-                return@launch
-            }
-            install(activity, file)
+    private fun download(url: String, target: File) {
+        val part = File(target.path + ".part")
+        Network.client.newCall(Request.Builder().url(url).build()).execute().use { resp ->
+            if (!resp.isSuccessful) error("HTTP ${resp.code}")
+            val body = resp.body ?: error("vacío")
+            val total = body.contentLength()
+            body.byteStream().use { input -> part.outputStream().use { input.copyTo(it, 64 * 1024) } }
+            if (total > 0 && part.length() != total) error("descarga incompleta")
         }
+        if (!part.renameTo(target)) error("no se pudo guardar")
+    }
+
+    /** La APK está completa, es de esta app y es más nueva que la instalada. */
+    private fun isUsable(ctx: Context, apk: File): Boolean {
+        if (!apk.exists()) return false
+        val info = ctx.packageManager.getPackageArchiveInfo(apk.path, 0) ?: return false
+        return info.packageName == ctx.packageName &&
+            PackageInfoCompat.getLongVersionCode(info) > BuildConfig.VERSION_CODE
     }
 
     private fun install(activity: Activity, apk: File) {
-        // La primera vez Android pide permiso para "instalar apps de Retro IPTV"
-        if (!activity.packageManager.canRequestPackageInstalls()) {
-            try {
-                Toast.makeText(activity, R.string.update_permission, Toast.LENGTH_LONG).show()
-                activity.startActivity(
-                    Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:${activity.packageName}"))
-                )
-                pendingApk = apk
-                return
-            } catch (_: ActivityNotFoundException) {
-                // Algunos Fire TV no tienen esta pantalla: se intenta instalar directamente
+        lastInstallAt = SystemClock.elapsedRealtime()
+        if (activity.packageManager.canRequestPackageInstalls()) startInstall(activity, apk)
+        else explainPermission(activity, apk)
+    }
+
+    /** Android exige permitir que esta app instale actualizaciones. */
+    private fun explainPermission(activity: Activity, apk: File) {
+        if (activity.isFinishing) return
+        MaterialAlertDialogBuilder(activity)
+            .setTitle(R.string.update_permission_title)
+            .setMessage(R.string.update_permission_msg)
+            .setPositiveButton(R.string.update_permission_open) { _, _ ->
+                try {
+                    waitingPermission = true
+                    activity.startActivity(
+                        Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:${activity.packageName}"))
+                    )
+                } catch (_: ActivityNotFoundException) {
+                    // Algunos Fire TV no tienen esta pantalla: se intenta instalar directamente
+                    waitingPermission = false
+                    startInstall(activity, apk)
+                }
             }
-        }
-        launchInstaller(activity, apk)
+            .setNegativeButton(R.string.update_permission_later, null)
+            .show()
     }
 
-    /** APK descargada esperando a que el usuario conceda el permiso de instalación. */
-    private var pendingApk: File? = null
-
-    /** Llamar en onResume: si se acaba de conceder el permiso, continúa la instalación. */
-    fun resumePendingInstall(activity: Activity) {
-        val apk = pendingApk ?: return
-        if (!activity.packageManager.canRequestPackageInstalls()) return
-        pendingApk = null
-        if (apk.exists()) launchInstaller(activity, apk)
+    private fun startInstall(activity: Activity, apk: File) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) installInBackground(activity, apk)
+        else openSystemInstaller(activity, apk)
     }
 
-    private fun launchInstaller(activity: Activity, apk: File) {
+    /** Android 11 o menos: el diálogo "Instalar" del sistema. */
+    private fun openSystemInstaller(activity: Activity, apk: File) {
         val uri = FileProvider.getUriForFile(activity, "${activity.packageName}.files", apk)
         val intent = Intent(Intent.ACTION_VIEW)
             .setDataAndType(uri, "application/vnd.android.package-archive")
-            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         try {
             activity.startActivity(intent)
         } catch (_: ActivityNotFoundException) {
-            Toast.makeText(activity, R.string.update_failed, Toast.LENGTH_LONG).show()
+            // Se reintentará la próxima vez
         }
     }
+
+    @RequiresApi(Build.VERSION_CODES.S)
+    private fun installInBackground(activity: Activity, apk: File) {
+        val ctx = activity.applicationContext
+        val installer = ctx.packageManager.packageInstaller
+        busy = true
+        scope.launch {
+            val sessionId = withContext(Dispatchers.IO) { runCatching { writeSession(ctx, installer, apk) }.getOrNull() }
+            busy = false
+            if (sessionId == null) return@launch
+            // Instalar cierra la app: si ya no se está en el inicio, se espera a volver
+            val current = resumedHome()
+            if (current == null) {
+                runCatching { installer.abandonSession(sessionId) }
+                lastInstallAt = 0L
+                return@launch
+            }
+            Toast.makeText(current, R.string.update_installing, Toast.LENGTH_LONG).show()
+            runCatching {
+                installer.openSession(sessionId).use { it.commit(statusSender(ctx, sessionId)) }
+            }.onFailure { runCatching { installer.abandonSession(sessionId) } }
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.S)
+    private fun writeSession(ctx: Context, installer: PackageInstaller, apk: File): Int {
+        installer.mySessions.forEach { runCatching { installer.abandonSession(it.sessionId) } }
+        val params = PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL).apply {
+            setAppPackageName(ctx.packageName)
+            setSize(apk.length())
+            setRequireUserAction(PackageInstaller.SessionParams.USER_ACTION_NOT_REQUIRED)
+        }
+        val id = installer.createSession(params)
+        try {
+            installer.openSession(id).use { session ->
+                apk.inputStream().use { input ->
+                    session.openWrite("RetroIPTV.apk", 0, apk.length()).use { out ->
+                        input.copyTo(out, 64 * 1024)
+                        session.fsync(out)
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            runCatching { installer.abandonSession(id) }
+            throw e
+        }
+        return id
+    }
+
+    private fun statusSender(ctx: Context, sessionId: Int): IntentSender =
+        PendingIntent.getBroadcast(
+            ctx,
+            sessionId,
+            Intent(ctx, UpdateInstallReceiver::class.java),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE,
+        ).intentSender
+
+    /** Resultado de la instalación. Solo importa cuando Android pide confirmación. */
+    internal fun onInstallStatus(intent: Intent) {
+        val status = intent.getIntExtra(PackageInstaller.EXTRA_STATUS, PackageInstaller.STATUS_FAILURE)
+        if (status != PackageInstaller.STATUS_PENDING_USER_ACTION) return
+        @Suppress("DEPRECATION")
+        val confirm = intent.getParcelableExtra<Intent>(Intent.EXTRA_INTENT) ?: return
+        val current = resumedHome()
+        if (current != null) showConfirm(current, confirm) else pendingConfirm = confirm
+    }
+
+    private fun showConfirm(activity: Activity, confirm: Intent) {
+        try {
+            activity.startActivity(confirm)
+        } catch (_: ActivityNotFoundException) {
+            // Se reintentará la próxima vez
+        }
+    }
+}
+
+/** Recibe de Android el resultado de la instalación en segundo plano. */
+class UpdateInstallReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) = Updater.onInstallStatus(intent)
 }

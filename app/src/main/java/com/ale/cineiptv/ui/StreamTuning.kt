@@ -128,6 +128,35 @@ object StreamTuning {
 }
 
 /**
+ * Recuerda qué canales han agotado todos los intentos: con [FAILED_CHANNELS] distintos en
+ * [WINDOW_MS], el servidor se da por caído y el siguiente fallo avisa sin repetir el ciclo.
+ */
+object ServerHealth {
+    private const val WINDOW_MS = 5 * 60_000L
+    private const val FAILED_CHANNELS = 3
+
+    private val failures = HashMap<String, Long>()
+
+    private fun prune() {
+        val now = android.os.SystemClock.elapsedRealtime()
+        failures.values.removeAll { now - it > WINDOW_MS }
+    }
+
+    fun record(url: String) {
+        prune()
+        failures[url] = android.os.SystemClock.elapsedRealtime()
+    }
+
+    fun isDown(): Boolean {
+        prune()
+        return failures.size >= FAILED_CHANNELS
+    }
+
+    /** Un canal ha arrancado: el servidor responde. */
+    fun clear() = failures.clear()
+}
+
+/**
  * Distintas formas de pedir el mismo canal. Si una falla, el reproductor prueba la
  * siguiente sin que el usuario tenga que hacer nada, y recuerda la que funcionó:
  *  1. dirección original con el User-Agent normal

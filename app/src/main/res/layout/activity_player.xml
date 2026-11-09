@@ -289,6 +289,17 @@
                 android:minWidth="160dp"
                 android:text="@string/retry" />
 
+            <!-- Servidor caído: elegir otro canal -->
+            <Button
+                android:id="@+id/btnOtherChannel"
+                style="@style/Widget.Cine.Button.Outlined"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:minWidth="160dp"
+                android:text="@string/other_channel"
+                android:visibility="gone" />
+
             <!-- Si nuestro reproductor no puede con el vídeo: abrirlo en VLC -->
             <Button
                 android:id="@+id/btnExternal"

@@ -86,14 +86,11 @@ class HomeActivity : AppCompatActivity() {
 
         // Una vez al día la lista se actualiza sola en segundo plano
         PlaylistRepository.refreshDailyIfNeeded(this) { if (!isFinishing) updateCounts() }
-
-        // ¿Hay una versión nueva en GitHub?
-        Updater.checkOnStart(this, lifecycleScope)
     }
 
     override fun onResume() {
         super.onResume()
-        Updater.resumePendingInstall(this)
+        Updater.onHomeResumed(this)
         // Al volver al menú, el contenido protegido se vuelve a bloquear
         ParentalControl.sessionUnlocked = false
         if (::b.isInitialized) {
@@ -101,6 +98,11 @@ class HomeActivity : AppCompatActivity() {
             else countText(Favorites.count, R.string.unit_favorites)
             refreshContinue()
         }
+    }
+
+    override fun onPause() {
+        Updater.onHomePaused()
+        super.onPause()
     }
 
     /** Nombre de la lista + conexiones de la cuenta. */

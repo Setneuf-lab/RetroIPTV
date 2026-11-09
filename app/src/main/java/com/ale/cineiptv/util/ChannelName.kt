@@ -32,6 +32,21 @@ object ChannelName {
         return t.isNotEmpty() && t in QUALITY
     }
 
+    /** Orden para bajar de calidad un directo: 4K > FHD > HD > sin indicar > SD (HEVC, justo detrás). */
+    fun qualityOrder(name: String): Int {
+        val tokens = split(name).second?.split(' ').orEmpty()
+        var rank = 0
+        for (t in tokens) rank = maxOf(rank, when (t) {
+            "4K", "4K+", "UHD", "UHD+", "8K", "2160P", "2160" -> 40
+            "FHD", "FHD+", "FULLHD", "1080P", "1080I", "1080" -> 30
+            "HD", "HD+", "720P", "720", "HQ" -> 20
+            "SD", "576P", "480P", "LQ" -> 10
+            else -> 0
+        })
+        if (rank == 0) rank = 15
+        return if (tokens.any { it in setOf("HEVC", "H265", "H.265", "X265") }) rank - 1 else rank
+    }
+
     private val YEAR_END = Regex("""\s*[(\[]((19|20)\d\d)[)\]]\s*$""")
 
     /**

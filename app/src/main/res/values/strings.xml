@@ -194,19 +194,20 @@
 
     <!-- Reproductor -->
     <string name="retry">Reintentar</string>
+    <string name="other_channel">Otro canal</string>
+    <string name="player_err_server_down">El servidor del proveedor no responde (posible saturación o bloqueo). Prueba en unos minutos.</string>
+    <string name="player_quality_fallback">Imagen congelada: probando en %1$s…</string>
     <string name="player_err_http">El servidor rechazó la conexión. El canal puede estar caído o tu cuenta ha alcanzado el máximo de conexiones simultáneas.</string>
     <string name="player_err_network">No hay conexión con el servidor. Revisa tu Internet.</string>
     <string name="player_err_format">Este formato de vídeo no es compatible con este dispositivo.</string>
     <string name="player_err_generic">No se pudo reproducir (%1$s).</string>
 
     <!-- Actualizaciones -->
-    <string name="update_title">Nueva versión disponible</string>
-    <string name="update_msg">Hay una nueva versión de Retro IPTV (%1$s). Tienes la %2$s.\n\nTus listas y favoritos se mantienen.</string>
-    <string name="update_now">Actualizar</string>
-    <string name="update_later">Más tarde</string>
-    <string name="update_downloading">Descargando actualización…</string>
-    <string name="update_failed">No se pudo descargar la actualización. Inténtalo más tarde.</string>
-    <string name="update_permission">Activa «Permitir de esta fuente» y vuelve atrás para instalar.</string>
+    <string name="update_permission_title">Actualizaciones automáticas</string>
+    <string name="update_permission_msg">Para que Retro IPTV se actualice sola, Android necesita tu permiso una única vez.\n\nPulsa «Abrir ajustes», activa «Permitir de esta fuente» y vuelve atrás con el mando. Tus listas y favoritos se mantienen.</string>
+    <string name="update_permission_open">Abrir ajustes</string>
+    <string name="update_permission_later">Ahora no</string>
+    <string name="update_installing">Instalando actualización. La app se cerrará: vuelve a abrirla en unos segundos.</string>
 
     <!-- Caducidad -->
     <string name="expiry_days">Suscripción: caduca el %1$s · quedan %2$d días</string>

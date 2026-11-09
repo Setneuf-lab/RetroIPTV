@@ -80,6 +80,8 @@ object PlaylistRepository {
 
     /** Lista que el reproductor recorre (para zapping canal arriba/abajo). */
     @Volatile var playQueue: List<Channel> = emptyList()
+    /** Calidades de cada canal agrupado de [playQueue] (por dirección de cualquiera de ellas). */
+    @Volatile var playQualities: Map<String, List<Channel>> = emptyMap()
     /** Serie de los episodios de [playQueue] (null si son películas o canales). */
     @Volatile var playShow: ShowRef? = null
     /** Último canal/vídeo reproducido (al volver a la lista, el cursor se coloca en él). */
@@ -125,7 +127,7 @@ object PlaylistRepository {
     }
 
     fun clear() {
-        live = emptyList(); movies = emptyList(); shows = emptyList(); playQueue = emptyList()
+        live = emptyList(); movies = emptyList(); shows = emptyList(); playQueue = emptyList(); playQualities = emptyMap()
         liveNumbers = java.util.IdentityHashMap(); groupOrder = emptyMap()
         xtream = null; account = null; vodCategories = emptyList(); seriesCategories = emptyList()
         synchronized(vodCache) { vodCache.clear() }
