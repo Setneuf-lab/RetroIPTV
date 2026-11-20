@@ -26,7 +26,8 @@ service cloud.firestore {
           && d.playlists is list
           && d.playlists.size() <= 20
           && d.active is int
-          && d.updatedAt is int;
+          && d.updatedAt is int
+          && (!('label' in d) || (d.label is string && d.label.size() <= 200));
       }
 
       allow get: if validId() || isAdmin();
@@ -44,12 +45,19 @@ service cloud.firestore {
 
       // Informe de reproducción: la TV solo puede AÑADIR lotes (no leerlos ni borrarlos);
       // el administrador los ve, descarga y borra desde el panel.
+      // Solo para dispositivos que ya existen (así nadie puede llenar la base de datos
+      // con informes de teles inventadas).
       match /logs/{logId} {
         allow create: if docId.matches('^[0-9A-F]{12}-[0-9]{6}$')
+          && exists(/databases/$(database)/documents/devices/$(docId))
           && request.resource.data.keys().hasOnly(['createdAt', 'model', 'app', 'events'])
           && request.resource.data.createdAt is int
           && request.resource.data.events is string
-          && request.resource.data.events.size() < 300000;
+          && request.resource.data.events.size() < 300000
+          && (!('model' in request.resource.data)
+              || (request.resource.data.model is string && request.resource.data.model.size() <= 200))
+          && (!('app' in request.resource.data)
+              || (request.resource.data.app is string && request.resource.data.app.size() <= 200));
         allow read, delete: if isAdmin();
       }
     }

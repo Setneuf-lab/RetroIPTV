@@ -257,6 +257,7 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        ParentalControl.init(this)
         queue = PlaylistRepository.playQueue
         if (queue.isEmpty()) { finish(); return }
 
@@ -459,6 +460,14 @@ class PlayerActivity : AppCompatActivity() {
         val p = player ?: return
         handler.removeCallbacks(stallWatchdog)
         val newIndex = i.coerceIn(0, queue.lastIndex)
+        // Control parental: un canal de un grupo bloqueado nunca arranca sin el PIN
+        if (ParentalControl.isLocked(queue[newIndex].group)) {
+            PinDialogs.ask(this) {
+                ParentalControl.sessionUnlocked = true
+                play(newIndex)
+            }
+            return
+        }
         if (newIndex != index) {
             subtitles.resetDelay()   // la sincronización es de cada vídeo
             if (isLive) previousChannel = queue.getOrNull(index)
@@ -916,8 +925,8 @@ class PlayerActivity : AppCompatActivity() {
     private fun zapToNumber(n: Int) {
         val inQueue = queue.indexOfFirst { PlaylistRepository.numberOf(it) == n }
         if (inQueue >= 0) { play(inQueue); return }
-        val all = PlaylistRepository.live
-        val inAll = all.indexOfFirst { PlaylistRepository.numberOf(it) == n && !ParentalControl.isLocked(it.group) }
+        val all = allowedLive()
+        val inAll = all.indexOfFirst { PlaylistRepository.numberOf(it) == n }
         if (inAll >= 0) {
             previousChannel = queue.getOrNull(index)
             queue = all
@@ -929,15 +938,20 @@ class PlayerActivity : AppCompatActivity() {
         Toast.makeText(this, getString(R.string.zap_not_found, n), Toast.LENGTH_SHORT).show()
     }
 
+    /** Todos los canales en directo menos los de grupos bloqueados por el control parental. */
+    private fun allowedLive(): List<Channel> =
+        PlaylistRepository.live.filter { !ParentalControl.isLocked(it.group) }
+
     /** Vuelve al último canal que se estaba viendo. */
     private fun zapPrevious() {
         val prev = previousChannel ?: return
         val current = queue.getOrNull(index)
         var i = queue.indexOf(prev)
         if (i < 0) {
-            i = PlaylistRepository.live.indexOf(prev)
+            val all = allowedLive()
+            i = all.indexOf(prev)
             if (i < 0) return
-            queue = PlaylistRepository.live
+            queue = all
             PlaylistRepository.playQueue = queue
             index = -1
         }
@@ -1165,8 +1179,12 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun zap(delta: Int) {
         if (queue.size < 2) return
-        val next = (index + delta + queue.size) % queue.size
-        play(next)
+        // Salta los canales bloqueados por el control parental
+        var next = index
+        repeat(queue.size - 1) {
+            next = (next + delta + queue.size) % queue.size
+            if (!ParentalControl.isLocked(queue[next].group)) { play(next); return }
+        }
     }
 
     private fun hideSystemUi() {

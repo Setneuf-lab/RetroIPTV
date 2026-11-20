@@ -30,6 +30,32 @@ object ParentalControl {
 
     fun checkPin(pin: String): Boolean = hasPin && hash(pin) == sp?.getString(KEY_PIN, null)
 
+    /** Milisegundos que quedan de espera tras varios PIN incorrectos (0 = se puede probar). */
+    fun lockRemainingMs(now: Long = System.currentTimeMillis()): Long =
+        ((sp?.getLong(KEY_LOCK_UNTIL, 0L) ?: 0L) - now).coerceAtLeast(0L)
+
+    /**
+     * Comprueba el PIN contando los fallos: tras 5 seguidos hay que esperar 1 min,
+     * luego 5 min y después 15 min por cada fallo más. Un acierto pone el contador a cero.
+     */
+    fun tryPin(pin: String, now: Long = System.currentTimeMillis()): Boolean {
+        val prefs = sp ?: return false
+        if (lockRemainingMs(now) > 0) return false
+        if (checkPin(pin)) {
+            prefs.edit().remove(KEY_FAILS).remove(KEY_LOCK_UNTIL).apply()
+            return true
+        }
+        val fails = prefs.getInt(KEY_FAILS, 0) + 1
+        val wait = when {
+            fails < MAX_FREE_TRIES -> 0L
+            fails == MAX_FREE_TRIES -> 60_000L
+            fails == MAX_FREE_TRIES + 1 -> 5 * 60_000L
+            else -> 15 * 60_000L
+        }
+        prefs.edit().putInt(KEY_FAILS, fails).putLong(KEY_LOCK_UNTIL, if (wait > 0) now + wait else 0L).apply()
+        return false
+    }
+
     fun setPin(pin: String) {
         sp?.edit()?.putString(KEY_PIN, hash(pin))?.apply()
     }
@@ -75,4 +101,7 @@ object ParentalControl {
     private const val KEY_PIN = "pin"
     private const val KEY_AUTO = "auto_adult"
     private const val KEY_GROUPS = "locked_groups"
+    private const val KEY_FAILS = "pin_fails"
+    private const val KEY_LOCK_UNTIL = "pin_lock_until"
+    private const val MAX_FREE_TRIES = 5
 }

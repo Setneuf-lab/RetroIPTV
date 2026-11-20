@@ -552,11 +552,12 @@ async function loadLogs() {
   try {
     const docs = [];
     let pageToken = "";
-    do {
+    let pages = 0;
+    do {   // como mucho 5 páginas (1.500 lotes): un informe enorme no cuelga el navegador
       const res = await api(`/${current.docId}/logs?pageSize=300${pageToken ? "&pageToken=" + encodeURIComponent(pageToken) : ""}`);
       (res?.documents || []).forEach(d => docs.push(d));
       pageToken = res?.nextPageToken || "";
-    } while (pageToken);
+    } while (pageToken && ++pages < 5);
     logDocs = docs.map(d => d.name.split("/documents/devices")[1]);
     logEvents = [];
     logMeta = {};

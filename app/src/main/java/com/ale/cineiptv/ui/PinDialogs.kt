@@ -47,11 +47,15 @@ object PinDialogs {
             .create()
         dialog.setOnShowListener {
             val submit: () -> Unit = {
-                if (ParentalControl.checkPin(edit.text.toString())) {
+                if (ParentalControl.tryPin(edit.text.toString())) {
                     dialog.dismiss(); onOk()
                 } else {
                     edit.text.clear()
-                    edit.error = activity.getString(R.string.pin_wrong)
+                    val waitMs = ParentalControl.lockRemainingMs()
+                    edit.error = if (waitMs > 0) {
+                        val min = ((waitMs + 59_999) / 60_000).toInt()
+                        activity.resources.getQuantityString(R.plurals.pin_locked_wait, min, min)
+                    } else activity.getString(R.string.pin_wrong)
                 }
             }
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener { submit() }

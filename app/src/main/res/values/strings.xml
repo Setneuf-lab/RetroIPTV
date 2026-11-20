@@ -88,6 +88,10 @@
     <string name="save">Guardar</string>
     <string name="pin_enter">Introduce el PIN</string>
     <string name="pin_wrong">PIN incorrecto</string>
+    <plurals name="pin_locked_wait">
+        <item quantity="one">Demasiados intentos. Espera %d minuto</item>
+        <item quantity="other">Demasiados intentos. Espera %d minutos</item>
+    </plurals>
     <string name="pin_new">Crea un PIN de 4 números</string>
     <string name="pin_repeat">Repite el PIN</string>
     <string name="pin_4_digits">Deben ser 4 números</string>

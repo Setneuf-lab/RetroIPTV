@@ -59,4 +59,7 @@ App Android / Android TV de IPTV para uso familiar. Las listas se gestionan desd
 - No añadir funciones para saltarse bloqueos judiciales de LaLiga (VPN integrada, etc.).
 - iOS aparcado. Descargas offline: propuestas, no hechas.
 - Actualización sin preguntar (`Updater`): descarga al abrir e instala solo con `HomeActivity` delante.
+- Control parental también dentro del reproductor: `play()` pide el PIN si el canal está bloqueado y el
+  zapping (número, ±1, anterior) nunca usa canales bloqueados. PIN: espera de 1/5/15 min tras 5 fallos.
+- Auditoría de seguridad (skill security-audit) en `Retro IPTV/security-audit/run-1` (fuera del repo).
 - En directo no hay reintentos sin fin: reinicio → otra calidad (`playQualities`) → aviso "servidor caído" (`ServerHealth`).
