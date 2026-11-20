@@ -48,9 +48,13 @@ Funciona con **Firebase** (gratis de sobra para unos pocos dispositivos).
 > La `apiKey` de Firebase no es secreta (solo identifica el proyecto). La seguridad la ponen las reglas: solo tu email puede ver y modificar listas.
 
 ### 3. Publicar el panel (gratis)
-1. Crea una cuenta en **app.netlify.com**, entra en **app.netlify.com/drop** y arrastra la carpeta `panel`. Te da una dirección tipo `https://xxxx.netlify.app`.
-2. **Importante:** en Firebase → **Authentication → Configuración → Dominios autorizados → Agregar dominio** → pega `xxxx.netlify.app` (sin https://). Sin esto, el botón «Entrar con Google» da error.
-3. Guarda la dirección en favoritos. Para actualizar el panel: Netlify → tu sitio → **Deploys** → arrastra de nuevo la carpeta.
+El panel se publica en Netlify **conectado a este repo de GitHub**: cada push que cambie algo en `panel/` lo vuelve a publicar solo. (Subir la carpeta a mano con drag & drop ya no vale: la función que consulta la caducidad de las cuentas no se publicaría.)
+1. En **app.netlify.com** → tu sitio → **Site configuration → Build & deploy → Continuous deployment → Link repository** (en un sitio nuevo: **Add new site → Import an existing project**) → GitHub → `Setneuf-lab/RetroIPTV`.
+2. Ajustes: **Branch** `main`, **Base directory** `panel`, **Build command** vacío. El resto (carpeta publicada y funciones) lo lee de `panel/netlify.toml`.
+3. **Importante:** en Firebase → **Authentication → Configuración → Dominios autorizados** debe estar el dominio del sitio (`xxxx.netlify.app`, sin https://). Si conectas el mismo sitio de siempre, ya está.
+4. Comprueba en Netlify → **Logs → Functions** que aparece `xtream-info`.
+
+**Caducidad de las cuentas** (lista de dispositivos y cada lista): el panel pregunta al proveedor (`player_api.php`) a través de la función `panel/netlify/functions/xtream-info.js`, que solo responde a tu sesión de administrador (lo comprueba con Firestore, así que el email autorizado sigue estando solo en `firestore.rules`). Funciona con listas Xtream y con M3U tipo `.../get.php?username=…&password=…`; el resto muestran «sin datos de caducidad». El último resultado se guarda en el navegador para verlo al instante.
 
 ### 4. Uso diario
 1. Instala el APK en cada dispositivo y ábrelo **una vez con Internet**: aparece solo en tu panel con su modelo y su ID.
@@ -193,7 +197,7 @@ panel/
 
 - La app apunta arranques (y su tiempo), cortes, errores, "no arranca", imagen congelada y cambios de formato, y los sube al salir del reproductor a `devices/{id}/logs` (sin usuarios ni contraseñas).
 - En el panel, dentro de cada dispositivo: **Ver informe**, **Descargar (.json)** y **Borrar informe**.
-- Requiere publicar las nuevas `firestore.rules` y volver a subir la carpeta `panel` a Netlify.
+- Requiere publicar las nuevas `firestore.rules`. El panel se publica solo al hacer push (ver «Publicar el panel»).
 
 ## Conexión más robusta
 

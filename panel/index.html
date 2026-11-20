@@ -96,6 +96,19 @@
   .logs .t-stall, .logs .t-variant, .logs .t-engine_vlc, .logs .t-live_restart, .logs .t-quality_change { color: var(--amber-2); }
   .logs .t-start_ok { color: var(--ok); }
   .logwrap { max-height: 420px; overflow: auto; border: 1px solid var(--line); border-radius: 12px; margin-top: 8px; }
+  /* Estado de la suscripción */
+  .subs { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; margin-top: 5px; font-size: 13px; }
+  .subs .main { font-weight: 600; }
+  .subs .main::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 7px; background: var(--muted); vertical-align: 1px; }
+  .subs .when { color: var(--muted); font-size: 12px; }
+  .tone-ok .main, .tone-ok .main::before { color: var(--ok); } .tone-ok .main::before { background: var(--ok); }
+  .tone-warn .main { color: var(--amber-2); } .tone-warn .main::before { background: var(--amber-2); }
+  .tone-bad .main { color: var(--error); } .tone-bad .main::before { background: var(--error); }
+  .tone-muted .main { color: var(--text-2); font-weight: 500; }
+  .subs-summary { margin: 10px 0 2px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: rgba(20,18,16,.6); font-size: 14px; font-weight: 600; }
+  .subs-summary.tone-ok { color: var(--ok); } .subs-summary.tone-warn { color: var(--amber-2); }
+  .subs-summary.tone-bad { color: var(--error); border-color: rgba(229,138,110,.4); } .subs-summary.tone-muted { color: var(--text-2); }
+  .head-actions { display: flex; flex-wrap: wrap; gap: 6px; }
   @media (max-width: 560px) {
     h1 { font-size: 32px; }
     .pl { flex-wrap: wrap; }
@@ -132,11 +145,17 @@
     <div class="card">
       <div class="head">
         <p class="label">Dispositivos</p>
-        <button id="btnReload" class="small">Actualizar</button>
+        <div class="head-actions">
+          <button id="btnSort" class="small">Orden: A-Z</button>
+          <button id="btnCheckAll" class="small">⟳ Comprobar todas</button>
+          <button id="btnReload" class="small">Actualizar</button>
+        </div>
       </div>
+      <div id="subsSummary" class="subs-summary hidden"></div>
       <div id="devList"></div>
       <div id="devMsg" class="msg"></div>
-      <p class="hint">Un dispositivo aparece aquí cuando se abre la app en él por primera vez con Internet. Pulsa sobre él para gestionar sus listas.</p>
+      <p class="hint">Un dispositivo aparece aquí cuando se abre la app en él por primera vez con Internet. Pulsa sobre él para gestionar sus listas.<br>
+        Caducidad y conexiones: se consultan al proveedor al abrir el panel y con «⟳ Comprobar todas». Verde: más de 30 días · ámbar: 30 días o menos · rojo: caducada, bloqueada o datos incorrectos.</p>
     </div>
   </section>
 
@@ -218,6 +237,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import {
   getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import * as Subs from "./subs.js";
 
 const CFG = window.CINE_CONFIG || {};
 const $ = id => document.getElementById(id);
@@ -349,19 +369,53 @@ async function loadDevices() {
     } while (pageToken);
     devices = all.sort((a, b) => (a.name || a.model).localeCompare(b.name || b.model, "es"));
     renderDevices();
+    // Lo comprobado hace menos de 10 min no se vuelve a preguntar al recargar
+    Subs.checkAll(allPlaylists(), getToken, { maxAgeMs: 10 * 60 * 1000 });
   } catch (e) {
     $("devList").replaceChildren();
     msg($("devMsg"), errText(e));
   }
 }
 
+// ---------- Suscripciones (caducidad del proveedor) ----------
+const getToken = () => auth.currentUser.getIdToken();
+const allPlaylists = () => devices.flatMap(d => d.playlists);
+let devSort = (() => { try { return localStorage.getItem("retroiptv.devSort") || "name"; } catch (_) { return "name"; } })();
+
+/** Lo más urgente de un dispositivo (para ordenar por "caducan antes"). */
+const urgency = d => Math.min(3e9, ...d.playlists.map(p => Subs.describe(Subs.entryOf(p)).order));
+
+function renderSummary() {
+  const sum = Subs.summarize(allPlaylists());
+  const box = $("subsSummary");
+  box.textContent = sum.text;
+  box.className = "subs-summary tone-" + sum.tone + (sum.text ? "" : " hidden");
+  $("btnCheckAll").disabled = Subs.isChecking();
+  $("btnCheckAll").textContent = Subs.isChecking() ? "Comprobando…" : "⟳ Comprobar todas";
+  $("btnSort").textContent = devSort === "exp" ? "Orden: caducan antes" : "Orden: A-Z";
+}
+
+Subs.onChange(() => {
+  renderSummary();
+  if (current) renderList(); else renderDevices();
+});
+
+$("btnCheckAll").onclick = () => Subs.checkAll(allPlaylists(), getToken);
+$("btnSort").onclick = () => {
+  devSort = devSort === "exp" ? "name" : "exp";
+  try { localStorage.setItem("retroiptv.devSort", devSort); } catch (_) {}
+  renderDevices();
+};
+
 function renderDevices() {
+  renderSummary();
   const box = $("devList"); box.replaceChildren();
   if (!devices.length) {
     box.append(el("p", "empty", "Todavía no hay dispositivos. Abre la app en una TV con Internet y pulsa «Actualizar»."));
     return;
   }
-  devices.forEach(d => {
+  const list = devSort === "exp" ? [...devices].sort((a, b) => urgency(a) - urgency(b)) : devices;
+  list.forEach(d => {
     const row = el("div", "dev");
     row.tabIndex = 0;
     const info = el("div", "info");
@@ -371,6 +425,7 @@ function renderDevices() {
     const sub = el("div", "sub mono", prettyId(d.docId) + (d.name && d.model ? "  ·  " + d.model : ""));
     info.append(title, sub);
     if (active) info.append(el("div", "sub", "Activa: " + plName(active)));
+    d.playlists.forEach(p => info.append(Subs.chip(Subs.describe(Subs.entryOf(p)), d.playlists.length > 1 ? plName(p) : "")));
     row.append(info, el("div", "count", d.playlists.length + (d.playlists.length === 1 ? " lista" : " listas")));
     row.onclick = () => openDevice(d);
     row.onkeydown = e => { if (e.key === "Enter") openDevice(d); };
@@ -413,6 +468,8 @@ async function mutate(change, okText, bump = true) {
   try {
     await saveCurrent(bump);
     msg($("formMsg"), okText, "ok");
+    // Una lista nueva o con datos cambiados se comprueba en el momento
+    Subs.checkAll(current.playlists, getToken, { maxAgeMs: 10 * 60 * 1000 });
   } catch (e) {
     Object.assign(current, backup);
     renderList();
@@ -433,6 +490,7 @@ function renderList() {
     const name = el("div", "name", plName(p));
     name.append(el("span", "badge" + (isActive ? " on" : ""), isActive ? "ACTIVA" : (p.type === "xtream" ? "XTREAM" : "M3U")));
     info.append(name, el("div", "detail", p.type === "xtream" ? `${p.host} · usuario: ${p.user}` : p.url));
+    info.append(Subs.chip(Subs.describe(Subs.entryOf(p))));
 
     const actions = el("div", "actions");
     if (!isActive) {

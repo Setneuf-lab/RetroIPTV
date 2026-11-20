@@ -49,6 +49,9 @@ App Android / Android TV de IPTV para uso familiar. Las listas se gestionan desd
   - `SubtitleController`, `AudioController` (pistas de audio + radio con imagen y retraso ajustable), `StreamTuning`.
 - **util/** — `ChannelName` (nombre/calidad), `LangFilter`, `Seasons`, `DeviceCaps` (4K, TitleKey), `Updater`.
 - `panel/` — panel web (index.html + firestore.rules). Admin: el email del dueño en las reglas.
+  Netlify conectado al repo (base `panel`, `panel/netlify.toml`): cada push a `panel/**` lo publica.
+  `subs.js` + `netlify/functions/xtream-info.js`: caducidad/conexiones de cada cuenta (la función
+  solo responde al admin: valida su token pidiendo `devices` a Firestore).
 - `tools/gen_logo.py` — genera los logos ("RETRO IPTV", caja de palomitas).
 
 ## Decisiones ya tomadas

@@ -1,0 +1,9 @@
+# Configuración de Netlify para el panel.
+# El sitio debe estar conectado al repo de GitHub con "Base directory" = panel
+# (subiendo la carpeta a mano, las funciones no se publican).
+
+[build]
+  publish = "."
+
+[functions]
+  directory = "netlify/functions"
