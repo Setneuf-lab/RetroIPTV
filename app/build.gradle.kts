@@ -113,6 +113,9 @@ dependencies {
     // Segundo motor de reproducción (VLC): se usa solo cuando el principal no puede con un canal
     implementation("org.videolan.android:libvlc-all:3.6.2")
 
+    // Pruebas automáticas (solo en el PC, no van dentro de la APK)
+    testImplementation("junit:junit:4.13.2")
+
     // Logos de canales / carátulas
     implementation("io.coil-kt:coil:2.7.0")
 }

@@ -1,5 +1,7 @@
 package com.ale.cineiptv.data
 
+import com.ale.cineiptv.util.SearchQuery
+
 /** Sección a la que pertenece cada entrada de la lista. */
 enum class ContentType { LIVE, MOVIE, SERIES }
 
@@ -20,10 +22,9 @@ class Channel(
 ) {
     /**
      * Búsqueda sin guardar copias del texto (ahorra mucha memoria en listas enormes).
-     * Cadena vacía = todo coincide.
+     * null = todo coincide. Ver [SearchQuery] (sin acentos, por palabras, con erratas).
      */
-    fun matchesQuery(q: String): Boolean =
-        q.isEmpty() || name.contains(q, ignoreCase = true) || group.contains(q, ignoreCase = true)
+    fun matchesQuery(q: SearchQuery?): Boolean = q == null || q.matches(name, group)
 }
 
 /**
@@ -41,8 +42,7 @@ class SeriesShow(
 
     val needsEpisodes: Boolean get() = episodes.isEmpty() && seriesId != null
 
-    fun matchesQuery(q: String): Boolean =
-        q.isEmpty() || name.contains(q, ignoreCase = true) || group.contains(q, ignoreCase = true)
+    fun matchesQuery(q: SearchQuery?): Boolean = q == null || q.matches(name, group)
 }
 
 /** Categoría de películas o series de Xtream (se descarga su contenido al abrirla). */

@@ -32,6 +32,7 @@ import com.ale.cineiptv.data.WatchHistory
 import com.ale.cineiptv.util.Seasons
 import com.ale.cineiptv.util.LangFilter
 import com.ale.cineiptv.util.LangMatcher
+import com.ale.cineiptv.util.SearchQuery
 import com.ale.cineiptv.util.ChannelName
 import com.ale.cineiptv.databinding.ActivityContentBinding
 import com.ale.cineiptv.databinding.ItemRecentChipBinding
@@ -544,14 +545,16 @@ class ContentActivity : AppCompatActivity() {
 
             val langM = LangMatcher(lang)
             val groupDupes = prefs.groupDuplicates
+            val sq = SearchQuery.of(q)
             val result = withContext(Dispatchers.Default) {
                 when {
                     showCategories -> {
-                        val idx = categories.indices.filter { categories[it].name.contains(q, ignoreCase = true) }
-                        val ordered = if (sort == "name") {
+                        val idx = categories.indices.filter { sq == null || sq.matches(categories[it].name) }
+                        val sortedIdx = if (sort == "name") {
                             val collator = Collator.getInstance(Locale("es", "ES")).apply { strength = Collator.PRIMARY }
                             idx.sortedWith { a, b2 -> collator.compare(categories[a].name, categories[b2].name) }
                         } else idx
+                        val ordered = byRelevance(sortedIdx, sq) { categories[it].name }
                         FilterResult(ordered.map { CatEntry(it + 1) }, emptyList(), ordered.map { i ->
                             val name = categories[i].name
                             DisplayItem(if (locked(name)) "🔒  $name" else name, null, null, null)
@@ -560,7 +563,7 @@ class ContentActivity : AppCompatActivity() {
 
                     show != null -> {
                         val eps = loadedEpisodes.filter {
-                            it.matchesQuery(q) && (seasonFilter == null || Seasons.of(it.name) == seasonFilter)
+                            it.matchesQuery(sq) && (seasonFilter == null || Seasons.of(it.name) == seasonFilter)
                         }
                         FilterResult(eps, eps, eps.mapIndexed { i, c ->
                             DisplayItem(c.name, null, c.logo ?: show.logo, i + 1, Favorites.isFavorite(c))
@@ -568,39 +571,39 @@ class ContentActivity : AppCompatActivity() {
                     }
 
                     loadedShows != null -> {
-                        val list = sorted(loadedShows.filter {
-                            !locked(it.group) && it.name.contains(q, ignoreCase = true) && (!globalSearch || langM.ok(it.group, it.name))
-                        }, sort, { it.name }, { it.group })
+                        val list = byRelevance(sorted(loadedShows.filter {
+                            !locked(it.group) && (sq == null || sq.matches(it.name)) && (!globalSearch || langM.ok(it.group, it.name))
+                        }, sort, { it.name }, { it.group }), sq) { it.name }
                         FilterResult(list, emptyList(), list.map {
                             DisplayItem(it.name, if (globalSearch) it.group else null, it.logo, null, Favorites.isFavorite(it))
                         })
                     }
 
                     loadedMovies != null -> {
-                        val list = sorted(loadedMovies.filter {
-                            !locked(it.group) && it.name.contains(q, ignoreCase = true) && (!globalSearch || langM.ok(it.group, it.name))
-                        }, sort, { it.name }, { it.group })
+                        val list = byRelevance(sorted(loadedMovies.filter {
+                            !locked(it.group) && (sq == null || sq.matches(it.name)) && (!globalSearch || langM.ok(it.group, it.name))
+                        }, sort, { it.name }, { it.group }), sq) { it.name }
                         FilterResult(list, list, list.map { c ->
                             DisplayItem(c.name, if (globalSearch) c.group else null, c.logo, null, Favorites.isFavorite(c))
                         })
                     }
 
                     section == Section.SERIES -> {
-                        val list = sorted(PlaylistRepository.shows.filter {
-                            (groupName == null || it.group == groupName) && !locked(it.group) && it.matchesQuery(q) && langM.ok(it.group, it.name)
-                        }, sort, { it.name }, { it.group })
+                        val list = byRelevance(sorted(PlaylistRepository.shows.filter {
+                            (groupName == null || it.group == groupName) && !locked(it.group) && it.matchesQuery(sq) && langM.ok(it.group, it.name)
+                        }, sort, { it.name }, { it.group }), sq) { it.name }
                         FilterResult(list, emptyList(), list.map {
                             DisplayItem(it.name, getString(R.string.episodes_fmt, it.episodes.size), it.logo, null, Favorites.isFavorite(it))
                         })
                     }
 
-                    section == Section.FAVORITES -> buildFavorites(groupIndex, sort, q)
+                    section == Section.FAVORITES -> buildFavorites(groupIndex, sort, sq)
 
                     else -> {
                         val src = if (section == Section.LIVE) PlaylistRepository.live else PlaylistRepository.movies
-                        val list = sorted(src.filter {
-                            (groupName == null || it.group == groupName) && !locked(it.group) && it.matchesQuery(q) && langM.ok(it.group, it.name)
-                        }, sort, { it.name }, { it.group })
+                        val list = byRelevance(sorted(src.filter {
+                            (groupName == null || it.group == groupName) && !locked(it.group) && it.matchesQuery(sq) && langM.ok(it.group, it.name)
+                        }, sort, { it.name }, { it.group }), sq, { it.group }) { it.name }
                         val numbered = section == Section.LIVE
                         if (numbered && groupDupes) groupDuplicates(list) else
                         FilterResult(list, list, list.map { c ->
@@ -628,25 +631,25 @@ class ContentActivity : AppCompatActivity() {
     }
 
     /** Favoritos: 0 = todos, 1 = TV en vivo, 2 = películas, 3 = series. Respeta el control parental. */
-    private fun buildFavorites(category: Int, sort: String, q: String): FilterResult {
+    private fun buildFavorites(category: Int, sort: String, q: SearchQuery?): FilterResult {
         val wantLive = category == 0 || category == 1
         val wantMovies = category == 0 || category == 2
         val wantSeries = category == 0 || category == 3
         val okGroup = { g: String -> !ParentalControl.isLocked(g) }
 
         // Los favoritos se guardan con todos sus datos: no dependen de qué categorías estén cargadas
-        val favShows = if (wantSeries) sorted(Favorites.shows().filter {
+        val favShows = if (wantSeries) byRelevance(sorted(Favorites.shows().filter {
             okGroup(it.group) && it.matchesQuery(q)
-        }, sort, { it.name }, { it.group }) else emptyList()
+        }, sort, { it.name }, { it.group }), q) { it.name } else emptyList()
 
-        val favChannels = sorted(Favorites.channels().filter { c ->
+        val favChannels = byRelevance(sorted(Favorites.channels().filter { c ->
             val wanted = when (c.type) {
                 ContentType.LIVE -> wantLive
                 ContentType.MOVIE -> wantMovies
                 ContentType.SERIES -> wantSeries
             }
             wanted && okGroup(c.group) && c.matchesQuery(q)
-        }, sort, { it.name }, { it.group })
+        }, sort, { it.name }, { it.group }), q) { it.name }
 
         val liveLabel = getString(R.string.section_live)
         val movieLabel = getString(R.string.section_movies)
@@ -686,6 +689,21 @@ class ContentActivity : AppCompatActivity() {
     }
 
     // ---------------------------------------------------------------- Ordenar
+
+    /**
+     * Con búsqueda escrita, lo que más se parece va primero; a igual parecido se respeta
+     * el orden elegido (A-Z, número…). Sin búsqueda no cambia nada.
+     */
+    private fun <T> byRelevance(
+        list: List<T>,
+        sq: SearchQuery?,
+        group: ((T) -> String)? = null,
+        name: (T) -> String,
+    ): List<T> {
+        if (sq == null || list.size < 2) return list
+        val scores = IntArray(list.size) { i -> sq.score(name(list[i]), group?.invoke(list[i])) }
+        return list.indices.sortedByDescending { scores[it] }.map { list[it] }
+    }
 
     /**
      * "number": orden original del proveedor (ya viene así de la lista)
