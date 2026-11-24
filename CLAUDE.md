@@ -35,7 +35,11 @@ App Android / Android TV de IPTV para uso familiar. Las listas se gestionan desd
   (sin panel, sin informes, ID de dispositivo oculto), `Updater` vacío en `app/src/play/`, sin permiso
   de instalar. Firma con la **llave de subida** (`PLAY_KEYSTORE_FILE/PASSWORD`, `PLAY_KEY_ALIAS`); sin
   ella el AAB sale sin firmar. Nunca firmar Play con la llave familiar. `BuildConfig.IS_PLAY` distingue.
-- Plan Play: prueba de 7 días y compra única de por vida (4,99 €) con Google Play Billing (solo en play).
+- Prueba y pago (solo play): `util/License.kt` por flavor (familia = todo abierto). 7 días con todo abierto
+  desde la 1.ª instalación; después `PlayerActivity.start` muestra la compra. Producto integrado
+  `version_completa` (4,99 €, Billing 8, `playImplementation`). Días que quedan en el inicio (hueco del ID)
+  y "Comprar versión completa" al final de Ajustes. Reinstalar reinicia la prueba (aceptado).
+- Política de privacidad: `docs/privacidad.html` (GitHub Pages, rama main /docs).
 - Al tocar build.gradle/manifest: comparar `aapt2 dump badging` de familia antes/después.
 
 ## Compilar / comprobar

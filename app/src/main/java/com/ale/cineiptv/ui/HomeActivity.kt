@@ -20,6 +20,7 @@ import com.ale.cineiptv.data.Prefs
 import com.ale.cineiptv.data.SmartDns
 import com.ale.cineiptv.databinding.ActivityHomeBinding
 import com.ale.cineiptv.util.AppRestarter
+import com.ale.cineiptv.util.License
 import com.ale.cineiptv.util.Updater
 import androidx.lifecycle.lifecycleScope
 import com.ale.cineiptv.util.addFocusScale
@@ -92,6 +93,7 @@ class HomeActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         Updater.onHomeResumed(this)
+        refreshLicense()
         // Al volver al menú, el contenido protegido se vuelve a bloquear
         ParentalControl.sessionUnlocked = false
         if (::b.isInitialized) {
@@ -204,9 +206,17 @@ class HomeActivity : AppCompatActivity() {
         b.countSeries.text = countText(seriesCount(), if (repo.isXtream) R.string.unit_categories else R.string.unit_series)
     }
 
+    /** Versión Google Play: días de prueba que quedan (en el hueco del ID, que allí no se usa). */
+    private fun refreshLicense() {
+        if (!::b.isInitialized || com.ale.cineiptv.data.RemoteRepository.isConfigured) return
+        val status = License.statusText(this)
+        b.textDeviceId.text = status
+        b.textDeviceId.isVisible = status != null
+    }
+
     /** Ajustes: control parental y ajuste automático de la imagen. */
     private fun openSettings(prefs: Prefs) {
-        val items = arrayOf(
+        val items = listOfNotNull(
             getString(R.string.settings_parental),
             getString(if (prefs.afrEnabled) R.string.settings_afr_on else R.string.settings_afr_off),
             getString(if (prefs.groupDuplicates) R.string.settings_group_on else R.string.settings_group_off),
@@ -216,7 +226,8 @@ class HomeActivity : AppCompatActivity() {
                 else -> R.string.engine_auto_short
             })),
             getString(R.string.settings_dns_fmt, dnsLabels()[SmartDns.MODES.indexOf(prefs.dnsMode).coerceAtLeast(0)].substringBefore(" (")),
-        )
+            License.settingsLabel(this),
+        ).toTypedArray()
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.settings_title)
             .setItems(items) { _, which ->
@@ -232,6 +243,7 @@ class HomeActivity : AppCompatActivity() {
                     }
                     3 -> chooseEngine(prefs)
                     4 -> chooseDns(prefs)
+                    5 -> License.onSettingsClick(this) { refreshLicense() }
                     2 -> {
                         prefs.groupDuplicates = !prefs.groupDuplicates
                         Toast.makeText(

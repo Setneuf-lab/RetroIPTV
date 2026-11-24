@@ -40,6 +40,7 @@ import com.ale.cineiptv.data.PlayLog
 import com.ale.cineiptv.data.ParentalControl
 import com.ale.cineiptv.util.ChannelName
 import com.ale.cineiptv.util.DeviceCaps
+import com.ale.cineiptv.util.License
 import androidx.media3.common.Format
 import android.content.ActivityNotFoundException
 import android.net.Uri
@@ -259,7 +260,7 @@ class PlayerActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         ParentalControl.init(this)
         queue = PlaylistRepository.playQueue
-        if (queue.isEmpty()) { finish(); return }
+        if (queue.isEmpty() || !License.canPlay(this)) { finish(); return }
 
         b = ActivityPlayerBinding.inflate(layoutInflater)
         setContentView(b.root)
@@ -1226,6 +1227,11 @@ class PlayerActivity : AppCompatActivity() {
         private const val FROZEN_CHECK_MS = 4_000L
 
         fun start(ctx: Context, index: Int, isLive: Boolean, resume: Boolean = false) {
+            // Versión Google Play: acabada la prueba, primero la pantalla de compra
+            if (ctx is android.app.Activity && !License.canPlay(ctx)) {
+                License.showPaywall(ctx) { start(ctx, index, isLive, resume) }
+                return
+            }
             ctx.startActivity(
                 Intent(ctx, PlayerActivity::class.java)
                     .putExtra(EXTRA_INDEX, index)

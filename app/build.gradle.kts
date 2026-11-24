@@ -158,4 +158,7 @@ dependencies {
 
     // Logos de canales / carátulas
     implementation("io.coil-kt:coil:2.7.0")
+
+    // Solo Google Play: compra de la versión completa (pago único)
+    "playImplementation"("com.android.billingclient:billing:8.0.0")
 }

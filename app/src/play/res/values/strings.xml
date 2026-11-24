@@ -9,4 +9,28 @@
     <string name="dns_title">DNS (si no carga el servidor de tu lista)</string>
     <string name="dns_auto">Automático (recomendado): el de tu conexión y, si no responde, uno alternativo</string>
     <string name="player_err_server_down">El servidor de tu lista no responde. Prueba en unos minutos.</string>
+
+    <!-- Prueba de 7 días y versión completa (pago único) -->
+    <plurals name="trial_days_left">
+        <item quantity="one">Prueba gratis: queda %d día</item>
+        <item quantity="other">Prueba gratis: quedan %d días</item>
+    </plurals>
+    <string name="trial_over_short">Prueba terminada · Ajustes → Versión completa</string>
+    <string name="full_owned">Versión completa: activada ✓</string>
+    <string name="full_buy_fmt">Comprar versión completa (%1$s, para siempre)</string>
+    <string name="full_thanks">¡Gracias! La versión completa está activada.</string>
+    <string name="paywall_title">Versión completa</string>
+    <plurals name="paywall_trial_text">
+        <item quantity="one">Te queda %1$d día de prueba gratis con todo abierto.\n\nCuando quieras, desbloquea Retro Player para siempre con un único pago de %2$s. Sin suscripciones ni anuncios.</item>
+        <item quantity="other">Te quedan %1$d días de prueba gratis con todo abierto.\n\nCuando quieras, desbloquea Retro Player para siempre con un único pago de %2$s. Sin suscripciones ni anuncios.</item>
+    </plurals>
+    <string name="paywall_over_title">Se acabó la prueba gratis</string>
+    <string name="paywall_over_text">Han pasado los 7 días de prueba. Para seguir viendo tus listas, desbloquea Retro Player para siempre con un único pago de %1$s.\n\nSin suscripciones ni anuncios. Si ya lo compraste con esta cuenta de Google, pulsa "Ya lo compré".</string>
+    <string name="paywall_buy">Comprar</string>
+    <string name="paywall_restore">Ya lo compré</string>
+    <string name="paywall_later">Ahora no</string>
+    <string name="restore_none">No hay ninguna compra en esta cuenta de Google.</string>
+    <string name="billing_unavailable">No se puede conectar con Google Play. Comprueba la conexión e inténtalo de nuevo.</string>
+    <string name="billing_failed">No se pudo completar la compra. Inténtalo de nuevo.</string>
+    <string name="billing_pending">Pago pendiente: la versión completa se activará en cuanto se confirme.</string>
 </resources>
