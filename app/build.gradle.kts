@@ -17,18 +17,36 @@ android {
         versionCode = System.getenv("VERSION_CODE")?.toIntOrNull() ?: 1
         versionName = System.getenv("VERSION_NAME") ?: "1.2.0"
 
-        // Datos del panel web (Firebase). Se rellenan en gradle.properties.
-        val fbProject = (project.findProperty("cine.firebaseProjectId") as String?).orEmpty().trim()
-        val fbKey = (project.findProperty("cine.firebaseApiKey") as String?).orEmpty().trim()
-        buildConfigField("String", "FIREBASE_PROJECT_ID", "\"$fbProject\"")
-        buildConfigField("String", "FIREBASE_API_KEY", "\"$fbKey\"")
-
         // Solo procesadores ARM (todos los Fire TV, TV Box y móviles): la app pesa mucho menos
         ndk { abiFilters += listOf("armeabi-v7a", "arm64-v8a") }
+    }
 
-        // Repositorio de GitHub donde se publican las versiones (usuario/proyecto)
-        val updateRepo = (project.findProperty("cine.updateRepo") as String?).orEmpty().trim()
-        buildConfigField("String", "UPDATE_REPO", "\"$updateRepo\"")
+    // Dos versiones con el mismo código:
+    //  - familia: la de casa (panel web, actualizaciones desde GitHub, informes). La de siempre.
+    //  - play:    para Google Play. Sin panel, sin actualizador ni permiso de instalar APKs;
+    //             las listas las pone el usuario. Se publica como AAB.
+    flavorDimensions += "canal"
+    productFlavors {
+        create("familia") {
+            dimension = "canal"
+            // Datos del panel web (Firebase). Se rellenan en gradle.properties.
+            val fbProject = (project.findProperty("cine.firebaseProjectId") as String?).orEmpty().trim()
+            val fbKey = (project.findProperty("cine.firebaseApiKey") as String?).orEmpty().trim()
+            buildConfigField("String", "FIREBASE_PROJECT_ID", "\"$fbProject\"")
+            buildConfigField("String", "FIREBASE_API_KEY", "\"$fbKey\"")
+            // Repositorio de GitHub donde se publican las versiones (usuario/proyecto)
+            val updateRepo = (project.findProperty("cine.updateRepo") as String?).orEmpty().trim()
+            buildConfigField("String", "UPDATE_REPO", "\"$updateRepo\"")
+            buildConfigField("boolean", "IS_PLAY", "false")
+        }
+        create("play") {
+            dimension = "canal"
+            applicationIdSuffix = ".play"          // com.ale.retroiptv.play
+            buildConfigField("String", "FIREBASE_PROJECT_ID", "\"\"")
+            buildConfigField("String", "FIREBASE_API_KEY", "\"\"")
+            buildConfigField("String", "UPDATE_REPO", "\"\"")
+            buildConfigField("boolean", "IS_PLAY", "true")
+        }
     }
 
     // Firma de la app. Todas las versiones deben firmarse con la MISMA llave,
@@ -46,15 +64,20 @@ android {
             keyAlias = System.getenv("KEY_ALIAS") ?: localProps.getProperty("alias", "cineiptv")
             keyPassword = System.getenv("KEYSTORE_PASSWORD") ?: localProps.getProperty("password")
         }
+        // Llave de SUBIDA a Google Play (distinta de la familiar). Solo si se pasa por entorno.
+        System.getenv("PLAY_KEYSTORE_FILE")?.takeIf { it.isNotBlank() }?.let { path ->
+            create("upload") {
+                storeFile = file(path)
+                storePassword = System.getenv("PLAY_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("PLAY_KEY_ALIAS") ?: "upload"
+                keyPassword = System.getenv("PLAY_KEYSTORE_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
-            signingConfig = signingConfigs.getByName("release")
-        }
-        debug {
-            signingConfig = signingConfigs.getByName("release")
         }
     }
 
@@ -83,6 +106,21 @@ android {
     lint {
         abortOnError = false
         checkReleaseBuilds = false
+    }
+}
+
+// Qué llave firma cada versión:
+//  - familia (debug y release): la llave familiar de siempre (si no, las teles no actualizan).
+//  - play release: la llave de subida si está; si no, sale SIN firmar (nunca con la familiar).
+//  - play debug: la llave de depuración de Android (solo para probar en local).
+androidComponents {
+    onVariants { variant ->
+        when {
+            variant.flavorName == "familia" ->
+                variant.signingConfig?.setConfig(android.signingConfigs.getByName("release"))
+            variant.buildType == "release" ->
+                android.signingConfigs.findByName("upload")?.let { variant.signingConfig?.setConfig(it) }
+        }
     }
 }
 

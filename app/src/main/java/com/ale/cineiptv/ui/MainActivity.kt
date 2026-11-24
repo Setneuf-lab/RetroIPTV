@@ -53,6 +53,8 @@ class MainActivity : AppCompatActivity() {
         prefs = Prefs(this)
 
         b.textDeviceId.text = prefs.deviceId
+        // El ID solo sirve para el panel web (no existe en la versión de Google Play)
+        b.boxDeviceId.isVisible = RemoteRepository.isConfigured
         b.textDeviceKey.text = getString(R.string.device_key_fmt, prefs.deviceKey)
 
         restoreFields()

@@ -79,7 +79,8 @@ Reglas de prioridad en la app:
 ### Opción B — Android Studio
 1. Abre la carpeta `RetroIPTV` con Android Studio (Ladybug o posterior) y espera a que sincronice Gradle.
 2. Menú **Build → Build App Bundle(s) / APK(s) → Build APK(s)**.
-3. El APK queda en `app/build/outputs/apk/release/` (o `debug/`).
+3. Elige la variante **familiaRelease** (la de casa) en *Build Variants*. El APK queda en `app/build/outputs/apk/familia/release/`.
+   La variante **play** es la versión para Google Play (sin panel ni actualizador).
 
 Ambas opciones firman con la misma clave incluida (`app/keystore`), así que puedes **actualizar sin desinstalar**.
 

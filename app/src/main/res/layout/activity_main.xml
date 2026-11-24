@@ -55,8 +55,9 @@
                     android:textColor="@color/text_secondary"
                     android:textSize="15sp" />
 
-                <!-- Device ID -->
+                <!-- Device ID (solo con panel web) -->
                 <LinearLayout
+                    android:id="@+id/boxDeviceId"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_panel"

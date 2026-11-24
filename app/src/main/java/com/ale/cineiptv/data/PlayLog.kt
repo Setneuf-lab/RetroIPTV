@@ -46,6 +46,7 @@ object PlayLog {
      * [extra]: datos del suceso (ms, http, formato…).
      */
     fun event(type: String, ch: Channel?, extra: Map<String, Any?> = emptyMap()) {
+        if (!RemoteRepository.isConfigured) return   // sin panel (versión Play) no se apunta nada
         val o = JSONObject().put("t", System.currentTimeMillis()).put("type", type)
         if (ch != null) {
             o.put("ch", ch.name).put("grp", ch.group).put("kind", ch.type.name.lowercase()).put("src", safeUrl(ch.url))

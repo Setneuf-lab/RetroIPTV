@@ -11,8 +11,9 @@ App Android / Android TV de IPTV para uso familiar. Las listas se gestionan desd
 
 ## Publicar una versión (IMPORTANTE)
 - Cada **push a `main`** que toque la app lanza `.github/workflows/build-apk.yml`:
-  compila la APK firmada y crea una Release `build-<run>00` con el asset `RetroIPTV.apk`.
-  Las teles la detectan al abrir la app (`util/Updater.kt`, repo en `gradle.properties` → `cine.updateRepo`).
+  compila la APK firmada del flavor **familia** (`assembleFamiliaRelease`) y crea una Release
+  `build-<run>00` con el asset `RetroIPTV.apk`. Las teles la detectan al abrir la app
+  (`src/familia/.../util/Updater.kt`, repo en `gradle.properties` → `cine.updateRepo`).
 - `versionCode` = `run_number` + "00"; `versionName` = `1.2.<run_number>` (lo pone el workflow).
 - Los cambios en `panel/**`, `README.md` y `CLAUDE.md` **no** generan versión.
 - Publicar = llega a todos los aparatos de la familia: **compila antes de hacer push a main**.
@@ -25,8 +26,19 @@ App Android / Android TV de IPTV para uso familiar. Las listas se gestionan desd
   del repo: `KEYSTORE_BASE64` y `KEYSTORE_PASSWORD`.
 - No escribir contraseñas ni la llave en código, commits ni mensajes.
 
+## Dos versiones (product flavors, dimensión "canal")
+- **familia** — `com.ale.retroiptv`, la de casa: panel Firebase, Updater de GitHub, PlayLog,
+  `REQUEST_INSTALL_PACKAGES`. Firma con la llave familiar. Lo exclusivo vive en `app/src/familia/`
+  (Updater + receptor, manifest con el permiso y FileProvider, `res/xml/file_paths.xml`).
+- **play** — `com.ale.retroiptv.play`, para Google Play (AAB). BuildConfig de Firebase/UPDATE_REPO vacíos
+  (sin panel, sin informes, ID de dispositivo oculto), `Updater` vacío en `app/src/play/`, sin permiso
+  de instalar. Firma con la **llave de subida** (`PLAY_KEYSTORE_FILE/PASSWORD`, `PLAY_KEY_ALIAS`); sin
+  ella el AAB sale sin firmar. Nunca firmar Play con la llave familiar. `BuildConfig.IS_PLAY` distingue.
+- Plan Play: prueba de 7 días y compra única de por vida (4,99 €) con Google Play Billing (solo en play).
+- Al tocar build.gradle/manifest: comparar `aapt2 dump badging` de familia antes/después.
+
 ## Compilar / comprobar
-- `./gradlew assembleDebug` (JDK 17). Si el entorno no puede descargar dependencias,
+- `./gradlew assembleFamiliaDebug assemblePlayDebug` (JDK 17). Si el entorno no puede descargar dependencias,
   al menos revisa con cuidado y deja que el workflow compile; si falla, lee el log y corrige.
 - compileSdk/targetSdk 35, minSdk 26. ABIs: armeabi-v7a y arm64-v8a.
 
@@ -48,7 +60,7 @@ App Android / Android TV de IPTV para uso familiar. Las listas se gestionan desd
     Cambia solo a **VLC** (`VlcEngine`, libVLC 3.6.2) si ExoPlayer falla; se recuerda por canal.
   - `SubtitleController`, `AudioController` (pistas de audio + radio con imagen y retraso ajustable), `StreamTuning`.
 - **util/** — `LangFilter` (idioma: delante, detrás y entre corchetes; VOSE, DUAL/MULTI; EN=UK/US/CA, LAT=MX; lo que no indica idioma se ve siempre), `Search` (`SearchQuery`: búsqueda sin acentos, por palabras, con erratas, equivalencias
-  inglés/español en `EQUIVALENTS` y orden por parecido; pruebas en `app/src/test`, `./gradlew testDebugUnitTest`), `ChannelName` (nombre/calidad), `Seasons`, `DeviceCaps` (4K, TitleKey), `Updater`.
+  inglés/español en `EQUIVALENTS` y orden por parecido; pruebas en `app/src/test`, `./gradlew testFamiliaDebugUnitTest`), `ChannelName` (nombre/calidad), `Seasons`, `DeviceCaps` (4K, TitleKey). `Updater` está por flavor.
 - `panel/` — panel web (index.html + firestore.rules). Admin: el email del dueño en las reglas.
   Netlify conectado al repo (base `panel`, `panel/netlify.toml`): cada push a `panel/**` lo publica.
   `subs.js` + `netlify/functions/xtream-info.js`: caducidad/conexiones de cada cuenta (la función

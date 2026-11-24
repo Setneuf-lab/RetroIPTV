@@ -53,6 +53,7 @@ class HomeActivity : AppCompatActivity() {
 
         val prefs = Prefs(this)
         b.textDeviceId.text = getString(R.string.device_id_fmt, prefs.deviceId)
+        b.textDeviceId.isVisible = com.ale.cineiptv.data.RemoteRepository.isConfigured
         b.textSource.text = sourceText(prefs.sourceLabel)
 
         updateCounts()

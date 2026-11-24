@@ -51,8 +51,9 @@ jobs:
           KEY_ALIAS: cineiptv
         run: |
           chmod +x gradlew
-          ./gradlew assembleRelease --stacktrace
-          cp app/build/outputs/apk/release/*.apk RetroIPTV.apk
+          # Versión "familia" (la de las teles de casa). La de Google Play va en build-play.yml.
+          ./gradlew assembleFamiliaRelease --stacktrace
+          cp app/build/outputs/apk/familia/release/*.apk RetroIPTV.apk
 
       - name: Publicar versión
         env:
