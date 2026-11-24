@@ -45,7 +45,7 @@ App Android / Android TV de IPTV para uso familiar. Las listas se gestionan desd
 ## Compilar / comprobar
 - `./gradlew assembleFamiliaDebug assemblePlayDebug` (JDK 17). Si el entorno no puede descargar dependencias,
   al menos revisa con cuidado y deja que el workflow compile; si falla, lee el log y corrige.
-- compileSdk/targetSdk 35, minSdk 26. ABIs: armeabi-v7a y arm64-v8a.
+- compileSdk 36; targetSdk 35 (familia) y 36 (play, lo exige Google Play); minSdk 26. ABIs: armeabi-v7a y arm64-v8a.
 
 ## Arquitectura (app/src/main/java/com/ale/cineiptv)
 - `RetroApp` — caché de imágenes Coil, aplica el DNS elegido.

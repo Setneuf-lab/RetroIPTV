@@ -1,0 +1,23 @@
+#EXTM3U
+#EXTINF:-1 group-title="Canales de prueba",Canal de prueba en directo (Akamai)
+https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8
+#EXTINF:-1 group-title="Canales de prueba",Big Buck Bunny HD (Blender, CC-BY)
+https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
+#EXTINF:-1 group-title="Canales de prueba",Tears of Steel HD (Blender, CC-BY)
+https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8
+#EXTINF:-1 group-title="Canales de prueba",Tears of Steel con subtítulos (Blender, CC-BY)
+https://test-streams.mux.dev/tos_ismc/main.m3u8
+#EXTINF:-1 group-title="Canales de prueba",Carta de ajuste Apple 16:9
+https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_16x9/bipbop_16x9_variant.m3u8
+#EXTINF:-1 group-title="Canales de prueba",Carta de ajuste Apple HDR
+https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8
+#EXTINF:-1 group-title="Películas libres",Sintel - tráiler 1080p (Blender, CC-BY)
+https://download.blender.org/durian/trailer/sintel_trailer-1080p.mp4
+#EXTINF:-1 group-title="Películas libres",Sintel - tráiler 720p (Blender, CC-BY)
+https://download.blender.org/durian/trailer/sintel_trailer-720p.mp4
+#EXTINF:-1 group-title="Películas libres",Big Buck Bunny - fragmento (Blender, CC-BY)
+https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_5MB.mp4
+#EXTINF:-1 group-title="Películas libres",Sintel - fragmento (Blender, CC-BY)
+https://test-videos.co.uk/vids/sintel/mp4/h264/720/Sintel_720_10s_5MB.mp4
+#EXTINF:-1 group-title="Películas libres",Medusas - fragmento
+https://test-videos.co.uk/vids/jellyfish/mp4/h264/720/Jellyfish_720_10s_5MB.mp4

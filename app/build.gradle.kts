@@ -7,7 +7,8 @@ plugins {
 
 android {
     namespace = "com.ale.cineiptv"
-    compileSdk = 35
+    // 36 = Android 16. Solo cambia con qué se compila; la familia sigue apuntando a 35 (targetSdk)
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.ale.retroiptv"
@@ -47,6 +48,8 @@ android {
             buildConfigField("String", "FIREBASE_API_KEY", "\"\"")
             buildConfigField("String", "UPDATE_REPO", "\"\"")
             buildConfigField("boolean", "IS_PLAY", "true")
+            // Google Play exige Android 16 (API 36) a las apps nuevas desde el 31-8-2026
+            targetSdk = 36
             manifestPlaceholders["tvBanner"] = "@drawable/tv_banner_play"
         }
     }
