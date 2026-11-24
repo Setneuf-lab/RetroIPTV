@@ -291,9 +291,10 @@ class ContentActivity : AppCompatActivity() {
     private fun setupLanguage() {
         if (section == Section.FAVORITES) return
         val counts = HashMap<String, Int>()
-        fun count(code: String?) { if (code != null) counts[code] = (counts[code] ?: 0) + 1 }
+        // "Varios idiomas" no es una opción del selector: se ve con cualquier idioma
+        fun count(code: String?) { if (code != null && code != LangFilter.MULTI) counts[code] = (counts[code] ?: 0) + 1 }
         if (isLazy) {
-            categories.forEach { count(LangFilter.codeOf(it.name)) }
+            categories.forEach { count(LangFilter.detect(it.name)) }
         } else {
             val seen = HashSet<String>()
             val noCode = HashSet<String>()
@@ -305,9 +306,13 @@ class ContentActivity : AppCompatActivity() {
             }
         }
         langCodes = counts.entries.sortedByDescending { it.value }.map { it.key to it.value }
-        val saved = prefs.langFilter
+        // Un filtro guardado antiguo ("UK", "MX") pasa a su idioma ("EN", "LAT")
+        val saved = prefs.langFilter.let { if (it.isEmpty()) it else LangFilter.family(it) }
         lang = if (langCodes.any { it.first == saved }) saved else ""
-        if (isLazy && lang.isNotEmpty()) categories = categories.filter { LangFilter.codeOf(it.name) == lang }
+        if (isLazy && lang.isNotEmpty()) {
+            val m = LangMatcher(lang)   // las categorías sin idioma se siguen viendo
+            categories = categories.filter { m.ok(it.name, null) }
+        }
 
         b.btnLang.isVisible = langCodes.isNotEmpty()
         b.btnLang.text = getString(R.string.lang_button_fmt, if (lang.isEmpty()) getString(R.string.lang_all_short) else lang)
@@ -317,11 +322,11 @@ class ContentActivity : AppCompatActivity() {
     /** Cuenta el idioma de cada grupo (o, si el grupo no lo indica, de cada nombre). */
     private inline fun seenGroup(group: String, name: String, seen: HashSet<String>, noCode: HashSet<String>, count: (String?) -> Unit) {
         if (seen.add(group)) {
-            val code = LangFilter.codeOf(group)
+            val code = LangFilter.detect(group)
             if (code != null) count(code) else noCode.add(group)
         }
         if (group in noCode) {
-            val code = LangFilter.codeOf(name) ?: return
+            val code = LangFilter.detect(name) ?: return
             // Se cuenta una vez por grupo y código
             if (seen.add(group + "\u0000" + code)) count(code)
         }

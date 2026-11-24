@@ -88,13 +88,13 @@ class DetailActivity : AppCompatActivity() {
             val versions = withContext(Dispatchers.Default) {
                 val key = TitleKey.of(movie.name)
                 if (key.title.length < 2) return@withContext emptyList()
-                val myLang = com.ale.cineiptv.util.LangFilter.codeOf(movie.name)
+                val myLang = com.ale.cineiptv.util.LangFilter.detect(movie.name)
                 all.asSequence()
                     .filter { it.url != movie.url && TitleKey.sameMovie(key, TitleKey.of(it.name)) }
                     .distinctBy { it.url }
                     .sortedWith(compareBy<Channel>(
                         { if (DeviceCaps.is4K(it.name) && !DeviceCaps.supports4K) 1 else 0 },
-                        { if (com.ale.cineiptv.util.LangFilter.codeOf(it.name) == myLang) 0 else 1 },
+                        { if (com.ale.cineiptv.util.LangFilter.detect(it.name) == myLang) 0 else 1 },
                         { -qualityScore(it.name) },
                     ))
                     .take(8)
@@ -123,7 +123,7 @@ class DetailActivity : AppCompatActivity() {
 
     /** "ES · HD (recomendada)", "EN · 4K", "MULTI-SUB"… */
     private fun versionLabel(ch: Channel, recommended: Boolean): String {
-        val lang = com.ale.cineiptv.util.LangFilter.codeOf(ch.name)
+        val lang = com.ale.cineiptv.util.LangFilter.tagOf(ch.name)
         val quality = ChannelName.split(ch.name).second
         val parts = listOfNotNull(lang, quality).ifEmpty { listOf(ChannelName.split(ch.name).first.take(24)) }
         val label = parts.joinToString(" · ")
