@@ -15,7 +15,8 @@ App Android / Android TV de IPTV para uso familiar. Las listas se gestionan desd
   `build-<run>00` con el asset `RetroIPTV.apk`. Las teles la detectan al abrir la app
   (`src/familia/.../util/Updater.kt`, repo en `gradle.properties` → `cine.updateRepo`).
 - `versionCode` = `run_number` + "00"; `versionName` = `1.2.<run_number>` (lo pone el workflow).
-- Los cambios en `panel/**`, `README.md` y `CLAUDE.md` **no** generan versión.
+- Los cambios en `panel/**`, `README.md`, `CLAUDE.md`, `docs/**`, `app/src/play/**` y `build-play.yml` **no** generan versión familiar.
+- AAB de Play: workflow manual `build-play.yml` (Actions → "Compilar versión Google Play"), solo desde main; artefacto, no Release.
 - Publicar = llega a todos los aparatos de la familia: **compila antes de hacer push a main**.
   Si trabajas en una rama `claude/...`, al acabar haz merge a `main` (o pregunta si prefiere revisar antes).
 - Tras el push, comprueba que el workflow termina en verde (`gh run list` / `gh run watch`).

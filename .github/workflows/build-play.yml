@@ -1,0 +1,66 @@
+# Versión para Google Play (flavor "play"). SOLO se lanza a mano:
+#   GitHub → Actions → "Compilar versión Google Play" → Run workflow.
+# Genera el AAB como artefacto descargable. No sube nada a Play ni crea Releases,
+# así que las teles de la familia no se enteran.
+#
+# Firma: con la LLAVE DE SUBIDA de Play (distinta de la familiar), guardada en los Secrets
+#   PLAY_UPLOAD_KEYSTORE_BASE64, PLAY_UPLOAD_KEYSTORE_PASSWORD y PLAY_UPLOAD_KEY_ALIAS.
+# Si aún no existen, el AAB sale sin firmar (sirve para comprobar que compila, no para subirlo).
+name: Compilar versión Google Play
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bundle:
+    # Solo desde main: nada de compilar ramas sin revisar con la llave de subida
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    env:
+      # Play es otra app: su propio número de versión, que sube en cada ejecución
+      VERSION_CODE: ${{ github.run_number }}
+      VERSION_NAME: 1.0.${{ github.run_number }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Preparar llave de subida (si existe)
+        env:
+          PLAY_UPLOAD_KEYSTORE_BASE64: ${{ secrets.PLAY_UPLOAD_KEYSTORE_BASE64 }}
+          PLAY_UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEYSTORE_PASSWORD }}
+          PLAY_UPLOAD_KEY_ALIAS: ${{ secrets.PLAY_UPLOAD_KEY_ALIAS }}
+        run: |
+          if [ -z "$PLAY_UPLOAD_KEYSTORE_BASE64" ]; then
+            echo "::warning::No hay llave de subida (PLAY_UPLOAD_KEYSTORE_BASE64): el AAB saldrá SIN FIRMAR."
+            exit 0
+          fi
+          echo "$PLAY_UPLOAD_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+          {
+            echo "PLAY_KEYSTORE_FILE=$RUNNER_TEMP/upload.jks"
+            echo "PLAY_KEYSTORE_PASSWORD=$PLAY_UPLOAD_KEYSTORE_PASSWORD"
+            echo "PLAY_KEY_ALIAS=${PLAY_UPLOAD_KEY_ALIAS:-upload}"
+          } >> "$GITHUB_ENV"
+
+      - name: Pruebas y AAB
+        run: |
+          chmod +x gradlew
+          ./gradlew testPlayDebugUnitTest bundlePlayRelease --stacktrace
+          cp app/build/outputs/bundle/playRelease/*.aab "RetroIPTV-play-$VERSION_NAME.aab"
+
+      - name: Guardar el AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: RetroIPTV-play-${{ env.VERSION_NAME }}
+          path: RetroIPTV-play-*.aab
+          retention-days: 30

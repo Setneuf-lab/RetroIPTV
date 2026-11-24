@@ -11,6 +11,10 @@ on:
       - "panel/**"
       - "README.md"
       - "CLAUDE.md"
+      # Lo que solo es de la versión Google Play no genera versión familiar
+      - "app/src/play/**"
+      - ".github/workflows/build-play.yml"
+      - "docs/**"
   workflow_dispatch:
 
 permissions:
