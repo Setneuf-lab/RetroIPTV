@@ -55,6 +55,19 @@
                     android:textColor="@color/text_secondary"
                     android:textSize="15sp" />
 
+                <!-- Solo versión Google Play: la app no trae contenido -->
+                <TextView
+                    android:id="@+id/textDisclaimer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="-12dp"
+                    android:layout_marginBottom="20dp"
+                    android:gravity="center"
+                    android:text="@string/play_disclaimer_short"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp"
+                    android:visibility="gone" />
+
                 <!-- Device ID (solo con panel web) -->
                 <LinearLayout
                     android:id="@+id/boxDeviceId"

@@ -38,6 +38,7 @@ android {
             val updateRepo = (project.findProperty("cine.updateRepo") as String?).orEmpty().trim()
             buildConfigField("String", "UPDATE_REPO", "\"$updateRepo\"")
             buildConfigField("boolean", "IS_PLAY", "false")
+            manifestPlaceholders["tvBanner"] = "@drawable/tv_banner"
         }
         create("play") {
             dimension = "canal"
@@ -46,6 +47,7 @@ android {
             buildConfigField("String", "FIREBASE_API_KEY", "\"\"")
             buildConfigField("String", "UPDATE_REPO", "\"\"")
             buildConfigField("boolean", "IS_PLAY", "true")
+            manifestPlaceholders["tvBanner"] = "@drawable/tv_banner_play"
         }
     }
 

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Textos propios de la versión Google Play (sustituyen a los de src/main). -->
+<resources>
+    <string name="app_name">Retro Player</string>
+    <string name="app_title">RETRO PLAYER</string>
+    <string name="app_tagline">Tu reproductor de listas</string>
+
+    <!-- Textos neutros para la revisión de Play: el DNS es para cuando el servidor no carga, sin hablar de bloqueos -->
+    <string name="dns_title">DNS (si no carga el servidor de tu lista)</string>
+    <string name="dns_auto">Automático (recomendado): el de tu conexión y, si no responde, uno alternativo</string>
+    <string name="player_err_server_down">El servidor de tu lista no responde. Prueba en unos minutos.</string>
+</resources>

@@ -3,6 +3,17 @@
     <string name="app_name">Retro IPTV</string>
     <string name="app_title">RETRO IPTV</string>
     <string name="app_tagline">Tu sala de cine en casa</string>
+    <!-- Solo se muestran en la versión Google Play -->
+    <string name="play_disclaimer_short">Esta app no incluye canales ni contenido: reproduce las listas que tú añades.</string>
+    <string name="play_disclaimer_title">Antes de empezar</string>
+    <string name="play_disclaimer_text">Retro Player es solo un reproductor. No incluye, vende ni recomienda canales, películas ni listas de ningún tipo.
+
+Para usarla necesitas una lista M3U o una cuenta Xtream propia, de un proveedor del que tengas derecho a ver el contenido. Tú eres responsable del contenido que añades.
+
+Tus listas y datos se guardan solo en este aparato.</string>
+    <string name="play_disclaimer_ok">Entendido</string>
+    <string name="play_privacy">Política de privacidad</string>
+    <string name="play_privacy_url" translatable="false">https://setneuf-lab.github.io/RetroIPTV/privacidad.html</string>
 
     <!-- Dispositivo -->
     <string name="device_id_label">ID DEL DISPOSITIVO</string>

@@ -17,7 +17,7 @@
     <application
         android:name=".RetroApp"
         android:allowBackup="true"
-        android:banner="@drawable/tv_banner"
+        android:banner="${tvBanner}"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"

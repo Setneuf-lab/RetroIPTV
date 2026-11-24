@@ -55,6 +55,8 @@ class MainActivity : AppCompatActivity() {
         b.textDeviceId.text = prefs.deviceId
         // El ID solo sirve para el panel web (no existe en la versión de Google Play)
         b.boxDeviceId.isVisible = RemoteRepository.isConfigured
+        b.textDisclaimer.isVisible = com.ale.cineiptv.BuildConfig.IS_PLAY
+        if (com.ale.cineiptv.BuildConfig.IS_PLAY) showPlayDisclaimerOnce()
         b.textDeviceKey.text = getString(R.string.device_key_fmt, prefs.deviceKey)
 
         restoreFields()
@@ -95,6 +97,27 @@ class MainActivity : AppCompatActivity() {
             }
             else -> startup(forceDownload = false)
         }
+    }
+
+    /** Versión Google Play: la primera vez se explica que la app no trae contenido. */
+    private fun showPlayDisclaimerOnce() {
+        val sp = getSharedPreferences("retro_play", MODE_PRIVATE)
+        if (sp.getBoolean("disclaimer_ok", false)) return
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.play_disclaimer_title)
+            .setMessage(R.string.play_disclaimer_text)
+            .setCancelable(false)
+            .setPositiveButton(R.string.play_disclaimer_ok) { _, _ ->
+                sp.edit().putBoolean("disclaimer_ok", true).apply()
+            }
+            .setNeutralButton(R.string.play_privacy) { _, _ ->
+                sp.edit().putBoolean("disclaimer_ok", true).apply()
+                runCatching {
+                    startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW,
+                        android.net.Uri.parse(getString(R.string.play_privacy_url))))
+                }
+            }
+            .show()
     }
 
     // ---------------------------------------------------------------- Panel web
