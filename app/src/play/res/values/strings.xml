@@ -25,9 +25,9 @@
         <item quantity="other">Te quedan %1$d días de prueba gratis con todo abierto.\n\nCuando quieras, desbloquea Retro Player para siempre con un único pago de %2$s. Sin suscripciones ni anuncios.</item>
     </plurals>
     <string name="paywall_over_title">Se acabó la prueba gratis</string>
-    <string name="paywall_over_text">Han pasado los 7 días de prueba. Para seguir viendo tus listas, desbloquea Retro Player para siempre con un único pago de %1$s.\n\nSin suscripciones ni anuncios. Si ya lo compraste con esta cuenta de Google, pulsa "Ya lo compré".</string>
-    <string name="paywall_buy">Comprar</string>
-    <string name="paywall_restore">Ya lo compré</string>
+    <string name="paywall_over_text">Han pasado los 7 días de prueba. Para seguir viendo tus listas, desbloquea Retro Player para siempre con un único pago de %1$s.\n\nSin suscripciones ni anuncios. Si ya lo compraste con esta cuenta de Google, pulsa "Restaurar compra".</string>
+    <string name="paywall_buy_fmt">Comprar · %1$s pago único, de por vida</string>
+    <string name="paywall_restore">Restaurar compra</string>
     <string name="paywall_later">Ahora no</string>
     <string name="restore_none">No hay ninguna compra en esta cuenta de Google.</string>
     <string name="billing_unavailable">No se puede conectar con Google Play. Comprueba la conexión e inténtalo de nuevo.</string>

@@ -109,7 +109,7 @@ object License {
         MaterialAlertDialogBuilder(activity)
             .setTitle(if (d > 0) R.string.paywall_title else R.string.paywall_over_title)
             .setMessage(msg)
-            .setPositiveButton(R.string.paywall_buy) { _, _ -> buy(activity, onUnlocked) }
+            .setPositiveButton(activity.getString(R.string.paywall_buy_fmt, price())) { _, _ -> buy(activity, onUnlocked) }
             .setNeutralButton(R.string.paywall_restore) { _, _ -> restore(activity, onUnlocked) }
             .setNegativeButton(R.string.paywall_later, null)
             .show()
@@ -131,7 +131,7 @@ object License {
         c.launchBillingFlow(activity, params)
     }
 
-    /** "Ya lo compré": vuelve a preguntar a Play (otro aparato con la misma cuenta, reinstalación…). */
+    /** "Restaurar compra": vuelve a preguntar a Play (otro aparato con la misma cuenta, reinstalación…). */
     private fun restore(activity: Activity, onUnlocked: () -> Unit) {
         val c = client
         if (c == null || !c.isReady) {
