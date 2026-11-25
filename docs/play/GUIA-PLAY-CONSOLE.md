@@ -11,7 +11,7 @@ GitHub → repo `Setneuf-lab/RetroIPTV` → Settings → Pages → *Build and de
 Source = *Deploy from a branch*, Branch = `main`, carpeta `/docs` → Save.
 A los 2-3 minutos funcionan:
 - Política: `https://setneuf-lab.github.io/RetroIPTV/privacidad.html`
-- Lista de prueba: `https://setneuf-lab.github.io/RetroIPTV/play/demo.m3u`
+- Lista de prueba (canales gratuitos y legales de Free-TV): `https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8`
 
 **b) 🔑 Crear la llave de subida (distinta de la familiar)**
 Guárdala fuera del repo y haz copia (USB / nube). Si se pierde, Google permite cambiarla, pero tarda días.
@@ -93,8 +93,8 @@ Con esa cuenta, la compra sale como "pedido de prueba" y no se cobra.
   > 7 días de prueba con todo incluido. Después, un único pago para siempre: sin suscripciones ni anuncios.
 
 - **Icono**: `docs/play/icono-512.png` · **Gráfico destacado**: `docs/play/grafico-destacado-1024x500.png`
-- **Capturas** (mínimo 2 de móvil; para TV, 1920×1080 en *Android TV*): hazlas con la **lista de prueba**
-  (Big Buck Bunny, Sintel, Tears of Steel… películas libres de Blender). **Nunca** con canales reales,
+- **Capturas** (mínimo 2 de móvil; para TV, 1920×1080 en *Android TV*): hazlas con pantallas **sin logos de cadenas**
+  (menús, ajustes, buscador, ficha vacía) o tapando los logos. **Nunca** con canales reales,
   logos de cadenas, fútbol ni carátulas de películas comerciales: es la causa nº 1 de rechazo de apps IPTV.
 - Categoría: **Reproductores y editores de vídeo**. Email de contacto: cucla.info@gmail.com.
 - **Android TV**: *Configuración avanzada → Factores de forma* → añadir **Android TV** (pide banner y
@@ -105,7 +105,7 @@ Con esa cuenta, la compra sale como "pedido de prueba" y no se cobra.
 | Apartado | Respuesta |
 |---|---|
 | Política de privacidad | `https://setneuf-lab.github.io/RetroIPTV/privacidad.html` |
-| Acceso a la app | "Algunas funciones restringidas" → instrucciones: *Abrir la app → "URL M3U" → pegar `https://setneuf-lab.github.io/RetroIPTV/play/demo.m3u` → "Cargar lista". La prueba de 7 días da acceso completo.* |
+| Acceso a la app | "Algunas funciones restringidas" → instrucciones: *Abrir la app → "URL M3U" → pegar `https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8` → "Cargar lista". La prueba de 7 días da acceso completo.* |
 | Anuncios | No contiene anuncios |
 | Clasificación de contenido | Categoría "Utilidades / otras". Sin violencia, sexo, etc. Si pregunta si los usuarios pueden acceder a contenido sin filtrar de internet: **Sí** (reproduce listas del usuario). |
 | Público objetivo | **18 años o más** (evita las normas de apps para niños) |
