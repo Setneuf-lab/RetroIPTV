@@ -18,8 +18,6 @@
         <item name="colorError">@color/error_soft</item>
         <item name="android:colorBackground">@color/bg_deep</item>
         <item name="android:windowBackground">@color/bg_deep</item>
-        <item name="android:statusBarColor">@color/bg_deep</item>
-        <item name="android:navigationBarColor">@color/bg_deep</item>
         <item name="android:textColorPrimary">@color/text_primary</item>
         <item name="android:textColorSecondary">@color/text_secondary</item>
         <item name="materialButtonStyle">@style/Widget.Cine.Button</item>

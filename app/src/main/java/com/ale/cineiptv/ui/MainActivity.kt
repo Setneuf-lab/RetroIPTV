@@ -49,7 +49,9 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         b = ActivityMainBinding.inflate(layoutInflater)
+        com.ale.cineiptv.util.SystemBars.enable(this)
         setContentView(b.root)
+        com.ale.cineiptv.util.SystemBars.pad(b.root)
         prefs = Prefs(this)
 
         b.textDeviceId.text = prefs.deviceId

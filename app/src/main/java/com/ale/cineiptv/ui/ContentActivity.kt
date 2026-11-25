@@ -199,7 +199,9 @@ class ContentActivity : AppCompatActivity() {
         ParentalControl.init(this)
         WatchHistory.init(this)
         b = ActivityContentBinding.inflate(layoutInflater)
+        com.ale.cineiptv.util.SystemBars.enable(this)
         setContentView(b.root)
+        com.ale.cineiptv.util.SystemBars.pad(b.root)
         prefs = Prefs(this)
 
         section = runCatching { Section.valueOf(intent.getStringExtra(EXTRA_SECTION).orEmpty()) }

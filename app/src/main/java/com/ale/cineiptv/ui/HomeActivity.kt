@@ -49,7 +49,9 @@ class HomeActivity : AppCompatActivity() {
         com.ale.cineiptv.data.PlayLog.flush()   // lo que quedara pendiente de la última vez
 
         b = ActivityHomeBinding.inflate(layoutInflater)
+        com.ale.cineiptv.util.SystemBars.enable(this)
         setContentView(b.root)
+        com.ale.cineiptv.util.SystemBars.pad(b.root)
         b.textVersion.text = getString(R.string.version_fmt, com.ale.cineiptv.BuildConfig.VERSION_NAME)
 
         val prefs = Prefs(this)

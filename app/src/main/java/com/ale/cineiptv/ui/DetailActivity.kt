@@ -44,7 +44,9 @@ class DetailActivity : AppCompatActivity() {
         Favorites.init(this)
         WatchHistory.init(this)
         b = ActivityDetailBinding.inflate(layoutInflater)
+        com.ale.cineiptv.util.SystemBars.enable(this)
         setContentView(b.root)
+        com.ale.cineiptv.util.SystemBars.pad(b.root)
 
         // Lo que ya sabemos sin preguntar al servidor
         val (name, quality) = ChannelName.split(movie.name)

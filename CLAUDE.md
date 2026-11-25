@@ -46,6 +46,8 @@ App Android / Android TV de IPTV para uso familiar. Las listas se gestionan desd
 - `./gradlew assembleFamiliaDebug assemblePlayDebug` (JDK 17). Si el entorno no puede descargar dependencias,
   al menos revisa con cuidado y deja que el workflow compile; si falla, lee el log y corrige.
 - compileSdk 36; targetSdk 35 (familia) y 36 (play, lo exige Google Play); minSdk 26. ABIs: armeabi-v7a y arm64-v8a.
+- Play release va con R8 (ofuscación; reglas en `app/proguard-rules.pro`), activado solo si la tarea es `*PlayRelease`.
+  La familia sigue sin R8. Pantalla de extremo a extremo: `util/SystemBars` en todas las pantallas salvo el reproductor.
 
 ## Arquitectura (app/src/main/java/com/ale/cineiptv)
 - `RetroApp` — caché de imágenes Coil, aplica el DNS elegido.
@@ -62,7 +64,7 @@ App Android / Android TV de IPTV para uso familiar. Las listas se gestionan desd
   - `DetailActivity` — ficha de película; aviso 4K si el aparato no decodifica 4K y "Otras versiones".
   - `PlayerActivity` — Media3 1.6.1 (ExoPlayer + OkHttp + FFmpeg) con variantes .ts/.m3u8 y UA alternativo,
     watchdog de arranque e imagen congelada, AFR, siguiente episodio, zapping por número, canal anterior.
-    Cambia solo a **VLC** (`VlcEngine`, libVLC 3.6.2) si ExoPlayer falla; se recuerda por canal.
+    Cambia solo a **VLC** (`VlcEngine`, libVLC 3.6.2 familia / 3.7.2 play — alineada a 16 KB; 3.7.3+ exige Kotlin 2.2) si ExoPlayer falla; se recuerda por canal.
   - `SubtitleController`, `AudioController` (pistas de audio + radio con imagen y retraso ajustable), `StreamTuning`.
 - **util/** — `LangFilter` (idioma: delante, detrás y entre corchetes; VOSE, DUAL/MULTI; EN=UK/US/CA, LAT=MX; lo que no indica idioma se ve siempre), `Search` (`SearchQuery`: búsqueda sin acentos, por palabras, con erratas, equivalencias
   inglés/español en `EQUIVALENTS` y orden por parecido; pruebas en `app/src/test`, `./gradlew testFamiliaDebugUnitTest`), `ChannelName` (nombre/calidad), `Seasons`, `DeviceCaps` (4K, TitleKey). `Updater` está por flavor.

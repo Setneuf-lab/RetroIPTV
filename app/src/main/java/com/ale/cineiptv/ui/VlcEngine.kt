@@ -83,14 +83,21 @@ class VlcEngine(context: Context, private val layout: VLCVideoLayout) {
     fun togglePause() { if (player.isPlaying) player.pause() else player.play() }
     fun stop() { player.stop() }
 
+    /**
+     * Libera VLC. Las vistas se sueltan aquí (hilo principal), pero parar y liberar se hace en segundo
+     * plano: con la red mal, stop() puede tardar decenas de segundos esperando al servidor y la app
+     * se quedaba congelada ("no responde") al salir del canal.
+     */
     fun release() {
         listener = null
         player.setEventListener(null)
-        player.stop()
         if (attached) player.detachViews()
         attached = false
-        player.release()
-        libVlc.release()
+        Thread({
+            runCatching { player.stop() }
+            runCatching { player.release() }
+            runCatching { libVlc.release() }
+        }, "vlc-release").start()
     }
 
     private companion object {

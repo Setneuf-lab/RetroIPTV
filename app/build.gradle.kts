@@ -82,7 +82,12 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // Ofuscación (R8) solo al compilar la versión Google Play (Play la exige; ver proguard-rules.pro).
+            // La familia no cambia: AGP no permite activarlo por flavor, así que se mira la tarea pedida.
+            val playBuild = gradle.startParameter.taskNames.any { it.contains("PlayRelease", ignoreCase = true) }
+            isMinifyEnabled = playBuild
+            isShrinkResources = playBuild
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
 
@@ -153,8 +158,11 @@ dependencies {
     // Decodificador de audio por software (AC3, E-AC3/Dolby, MP2, DTS…): muchos canales IPTV
     // usan estos formatos y los móviles no los decodifican → vídeo sin sonido.
     implementation("org.jellyfin.media3:media3-ffmpeg-decoder:1.6.1+2")
-    // Segundo motor de reproducción (VLC): se usa solo cuando el principal no puede con un canal
-    implementation("org.videolan.android:libvlc-all:3.6.2")
+    // Segundo motor de reproducción (VLC): se usa solo cuando el principal no puede con un canal.
+    // Play lleva la 3.7.2 (librerías alineadas a 16 KB, obligatorio en Play; la 3.7.3+ exige Kotlin 2.2); la familia sigue en 3.6.2
+    // hasta comprobar la nueva en las teles.
+    "familiaImplementation"("org.videolan.android:libvlc-all:3.6.2")
+    "playImplementation"("org.videolan.android:libvlc-all:3.7.2")
 
     // Pruebas automáticas (solo en el PC, no van dentro de la APK)
     testImplementation("junit:junit:4.13.2")
