@@ -72,9 +72,20 @@ object License {
         return if (left <= 0) 0 else ((left + DAY_MS - 1) / DAY_MS).toInt()
     }
 
+    /**
+     * Lista de demostración (canales gratuitos y legales de Free-TV): funciona siempre, sin prueba ni pago.
+     * Es la que se da a los revisores de Google, que no pueden usar pruebas gratuitas.
+     */
+    const val DEMO_URL = "https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8"
+
+    private fun usingDemo(ctx: Context): Boolean {
+        val p = com.ale.cineiptv.data.Prefs(ctx)
+        return p.sourceType == com.ale.cineiptv.data.SourceType.URL && p.m3uUrl.trim().equals(DEMO_URL, ignoreCase = true)
+    }
+
     fun canPlay(ctx: Context): Boolean {
         init(ctx)
-        return owned || daysLeft() > 0
+        return owned || daysLeft() > 0 || usingDemo(ctx)
     }
 
     /** Texto del inicio: días de prueba que quedan, o que ha terminado. Nada si ya está comprada. */
@@ -82,8 +93,11 @@ object License {
         init(ctx)
         if (owned) return null
         val d = daysLeft()
-        return if (d > 0) ctx.resources.getQuantityString(R.plurals.trial_days_left, d, d)
-        else ctx.getString(R.string.trial_over_short)
+        return when {
+            d > 0 -> ctx.resources.getQuantityString(R.plurals.trial_days_left, d, d)
+            usingDemo(ctx) -> ctx.getString(R.string.demo_free)
+            else -> ctx.getString(R.string.trial_over_short)
+        }
     }
 
     fun settingsLabel(ctx: Context): String {

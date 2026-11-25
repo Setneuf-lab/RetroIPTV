@@ -16,6 +16,7 @@
         <item quantity="other">Prueba gratis: quedan %d días</item>
     </plurals>
     <string name="trial_over_short">Prueba terminada · Ajustes → Versión completa</string>
+    <string name="demo_free">Lista de demostración: gratis sin límite</string>
     <string name="full_owned">Versión completa: activada ✓</string>
     <string name="full_buy_fmt">Comprar versión completa (%1$s, para siempre)</string>
     <string name="full_thanks">¡Gracias! La versión completa está activada.</string>

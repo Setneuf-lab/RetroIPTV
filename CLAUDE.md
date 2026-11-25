@@ -38,7 +38,7 @@ App Android / Android TV de IPTV para uso familiar. Las listas se gestionan desd
 - Prueba y pago (solo play): `util/License.kt` por flavor (familia = todo abierto). 7 días con todo abierto
   desde la 1.ª instalación; después `PlayerActivity.start` muestra la compra. Producto integrado
   `version_completa` (4,99 €, Billing 8, `playImplementation`). Días que quedan en el inicio (hueco del ID)
-  y "Comprar versión completa" al final de Ajustes. Reinstalar reinicia la prueba (aceptado).
+  y "Comprar versión completa" al final de Ajustes. Reinstalar reinicia la prueba (aceptado). Con la lista demo de Free-TV (`License.DEMO_URL`, la de los revisores) reproduce siempre.
 - Política de privacidad: `docs/privacidad.html` (GitHub Pages, rama main /docs).
 - Al tocar build.gradle/manifest: comparar `aapt2 dump badging` de familia antes/después.
 
