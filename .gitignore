@@ -11,3 +11,4 @@
 # La llave de firma nunca se sube a GitHub
 /app/keystore/
 *.jks
+.kotlin/
